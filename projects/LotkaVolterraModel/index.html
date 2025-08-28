@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Lotka–Volterra Predator–Prey Simulation | Abigale Tucker</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <style>
+    :root { color-scheme: dark; }
+    body { margin:0; font:16px/1.4 system-ui, sans-serif; background:#0b0d10; color:#eaeef2; }
+    .wrap { max-width: 900px; margin: 6vh auto; padding: 0 20px; }
+    h1 { font-size: clamp(22px, 4vw, 36px); margin: 0 0 10px; }
+    p  { opacity:.85; margin: 0 0 16px; }
+    .vid { margin: 18px 0 24px; border-radius: 12px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,.35); }
+    .row { display:flex; gap:12px; flex-wrap:wrap; }
+    .btn { display:inline-block; padding:10px 14px; border-radius:10px; background:#1a7; color:#041; text-decoration:none; font-weight:600; }
+    .btn.ghost { background:#132; color:#9fd; }
+    footer { opacity:.6; font-size:14px; margin-top:16px; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Lotka–Volterra Predator–Prey Simulation</h1>
+    <p>The Lotka–Volterra model is a simple mathematical model of how predator and prey populations change over time as they interact.</p>
+
+    <div class="vid">
+      <video controls playsinline poster="./thumbs/lvmodel.png" width="100%" preload="metadata">
+        <source src="./assets/demo.mp4" type="video/mp4" />
+        Your browser doesn’t support the video tag.
+      </video>
+    </div>
+
+    <div class="row">
+      <a class="btn" href="https://github.com/teletraanx/lotka-volterra-model.git" target="_blank" rel="noopener">View Code on GitHub</a>
+      <a class="btn ghost" href="assets/demo.mp4" download>Download Video</a>
+    </div>
+
+    <footer>Built with Unity 6 (URP). Agents on NavMesh; populations by Lotka–Volterra ODEs.</footer>
+  </div>
+</body>
+</html>
