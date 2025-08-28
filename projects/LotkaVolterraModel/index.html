@@ -20,6 +20,7 @@
   </style>
 </head>
 <body>
+  <button id="homeBtn">Back to Home</button>
   <div class="wrap">
     <h1>Lotka–Volterra Predator–Prey Simulation</h1>
     <p>The Lotka–Volterra model is a mathematical model of how predator and prey populations change over time as they interact.</p>
@@ -46,11 +47,16 @@
     </div>
 
     <footer>Built with Unity 6. Agents on NavMesh; populations by Lotka–Volterra Ordinary Differential Equations.</footer>
+    
   </div>
-    <script>
-      document.getElementById("homeBtn").onclick = function() {
+
+  <script>
+    const btn = document.getElementById("homeBtn");
+    if (btn) {
+      btn.onclick = function () {
         window.location.href = "https://teletraanx.github.io/";
       };
-    </script>
+    }
+  </script>
 </body>
 </html>
