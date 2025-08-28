@@ -11,6 +11,8 @@
     h1 { font-size: clamp(22px, 4vw, 36px); margin: 0 0 10px; }
     p  { opacity:.85; margin: 0 0 16px; }
     .vid { margin: 18px 0 24px; border-radius: 12px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,.35); }
+    .yt-wrap { position: relative; width: 100%; padding-top: 56.25%; } /* 16:9 */
+    .yt-wrap iframe { position: absolute; inset: 0; width: 100%; height: 100%; }
     .row { display:flex; gap:12px; flex-wrap:wrap; }
     .btn { display:inline-block; padding:10px 14px; border-radius:10px; background:#1a7; color:#041; text-decoration:none; font-weight:600; }
     .btn.ghost { background:#132; color:#9fd; }
@@ -20,21 +22,30 @@
 <body>
   <div class="wrap">
     <h1>Lotka–Volterra Predator–Prey Simulation</h1>
-    <p>The Lotka–Volterra model is a simple mathematical model of how predator and prey populations change over time as they interact.</p>
+    <p>The Lotka–Volterra model is a mathematical model of how predator and prey populations change over time as they interact.</p>
 
     <div class="vid">
-      <video controls playsinline poster="./thumbs/lvmodel.png" width="100%" preload="metadata">
-        <source src="./assets/demo.mp4" type="video/mp4" />
-        Your browser doesn’t support the video tag.
-      </video>
+      <div class="yt-wrap">
+        <!-- Replace VIDEO_ID with your actual YouTube ID -->
+        <iframe
+          src="https://www.youtube-nocookie.com/embed/4kPJ3d-4I9I?rel=0&modestbranding=1&controls=1"
+          title="Lotka–Volterra Predator–Prey Simulation | Abigale Tucker"
+          frameborder="0"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+          allowfullscreen
+          loading="lazy"
+          referrerpolicy="strict-origin-when-cross-origin">
+        </iframe>
+      </div>
     </div>
 
     <div class="row">
-      <a class="btn" href="https://github.com/teletraanx/lotka-volterra-model.git" target="_blank" rel="noopener">View Code on GitHub</a>
-      <a class="btn ghost" href="assets/demo.mp4" download>Download Video</a>
+      <!-- Link to the repo page (no .git) -->
+      <a class="btn" href="https://github.com/teletraanx/lotka-volterra-model" target="_blank" rel="noopener">View Code on GitHub</a>
+      <a class="btn ghost" href="https://youtu.be/4kPJ3d-4I9I" target="_blank" rel="noopener">Watch on YouTube</a>
     </div>
 
-    <footer>Built with Unity 6 (URP). Agents on NavMesh; populations by Lotka–Volterra ODEs.</footer>
+    <footer>Built with Unity 6. Agents on NavMesh; populations by Lotka–Volterra Ordinary Differential Equations.</footer>
   </div>
 </body>
 </html>
