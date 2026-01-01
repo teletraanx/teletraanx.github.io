@@ -6,41 +6,181 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <style>
     :root { color-scheme: dark; }
-    body { margin:0; font:16px/1.4 system-ui, sans-serif; background:#0b0d10; color:#eaeef2; }
+    body { margin:0; font:16px/1.55 system-ui, sans-serif; background:#0b0d10; color:#eaeef2; }
     .wrap { max-width: 900px; margin: 6vh auto; padding: 0 20px; }
     h1 { font-size: clamp(22px, 4vw, 36px); margin: 0 0 10px; }
-    p  { opacity:.85; margin: 0 0 16px; }
-    .vid { margin: 18px 0 24px; border-radius: 12px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,.35); }
-    .yt-wrap { position: relative; width: 100%; padding-top: 56.25%; } /* 16:9 */
-    .yt-wrap iframe { position: absolute; inset: 0; width: 100%; height: 100%; }
-    .row { display:flex; gap:12px; flex-wrap:wrap; }
-    .btn { display:inline-block; padding:10px 14px; border-radius:10px; background:#1a7; color:#041; text-decoration:none; font-weight:600; }
-    .btn.ghost { background:#132; color:#9fd; }
-    footer { opacity:.6; font-size:14px; margin-top:16px; }
+    h2 { font-size: 20px; margin: 28px 0 10px; }
+    h3 { font-size: 16px; margin: 18px 0 8px; opacity: .95; }
+    p  { opacity:.85; margin: 0 0 14px; }
+    ul { margin: 8px 0 16px 20px; opacity: .85; }
+    li { margin: 6px 0; }
+    .row { display:flex; gap:12px; flex-wrap:wrap; margin-top: 12px; }
+
+    /* Buttons */
+    .topbar { display:flex; justify-content:flex-start; padding: 16px 20px 0; }
+    .btn { display:inline-block; padding:10px 14px; border-radius:10px; background:#1a7; color:#041; text-decoration:none; font-weight:700; }
+    .btn.ghost { background:#132; color:#9fd; border: 1px solid rgba(159, 253, 221, .25); }
+    .btn.small { padding:8px 12px; font-weight:600; }
+
+    /* Content blocks */
+    .card {
+      margin-top: 18px;
+      background: rgba(255,255,255,.03);
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius: 14px;
+      padding: 16px;
+      box-shadow: 0 10px 30px rgba(0,0,0,.25);
+    }
+    .callout {
+      border-left: 4px solid rgba(80, 200, 160, .9);
+      padding: 10px 12px;
+      background: rgba(80, 200, 160, .08);
+      border-radius: 10px;
+      margin: 14px 0;
+    }
+
+    /* Code blocks */
+    pre {
+      margin: 10px 0 16px;
+      padding: 12px 14px;
+      border-radius: 12px;
+      overflow: auto;
+      background: #0f1319;
+      border: 1px solid rgba(255,255,255,.08);
+    }
+    code { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace; font-size: 14px; }
+
+    /* Images */
+    .gallery {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 10px;
+    }
+    figure {
+      margin: 0;
+      background: rgba(255,255,255,.02);
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    figure img { width: 100%; height: auto; display:block; }
+    figcaption { padding: 10px 12px; font-size: 14px; opacity: .75; }
+    @media (max-width: 720px) { .gallery { grid-template-columns: 1fr; } }
+
+    footer { opacity:.6; font-size:14px; margin-top:18px; }
   </style>
 </head>
 <body>
-  <button id="homeBtn">Back to Home</button>
+  <div class="topbar">
+    <a class="btn ghost small" href="https://teletraanx.github.io/">← Back to Home</a>
+  </div>
+
   <div class="wrap">
     <h1>Distributed-Memory Parallel Programming with MPI (C++)</h1>
     <p>Implemented MPI-based parallel programs in C++ demonstrating distributed computation, collective communication, and basic performance scaling.</p>
 
+    <section class="card">
+      <h2>What Is MPI?</h2>
+    
+      <p>
+        A typical single-machine program has one memory space (RAM) and one CPU
+        (possibly with many cores). As data or computational demands grow,
+        a single machine may become too slow or run out of memory. At some point,
+        one machine is not enough.
+      </p>
+    
+      <p>
+        What if we used many computers at once? Distributed memory systems address this by using multiple machines, 
+        each with its own memory, working together. Each computer has its own memory, 
+        they cannot see each other’s RAM, and they explicitly talk to each other. This is
+        <strong>distributed memory</strong>.
+      </p>
+    
+      <p>
+        Imagine four people each have their own notebook and are working on the same problem. 
+        No one can look into anyone else’s notebook. They can only pass notes. 
+        Message Passing Interface (MPI) provides the mechanism for passing those notes.
+      </p>
+    
+      <p>
+        MPI is a way for programs on different machines to talk to each other. 
+        With N copies of the same program running at the same time, each copy knows who it is (rank), 
+        how many total copies exist, and can send and receive messages. 
+      </p>
+    
+      <p>
+        When a program is launched with <code>mpirun -np 4 ./hello_mpi</code>,
+        four independent processes are started, each executing the same code.
+      </p>
+    
+      <h2>Program 1: Hello MPI</h2>
+    
+      <p>
+        With this program, each process queries its unique rank and the total number of processes in the global communicator. 
+        Each rank then prints identifying information, including the hostname it is running on, illustrating how MPI coordinates parallel execution and how identical code can take on different roles across processes. 
+      </p>
+    
+      <div class="gallery">
+        <figure>
+          <img src="assets/thumbs/hellooutput.png" alt="hello_mpi output" />
+          <figcaption>hello_mpi output showing ranks and hostnames</figcaption>
+        </figure>
+      </div>
+    
+      <h2>Program 2: Distributed Vector Sum</h2>
+    
+      <p>
+        This program computes the sum of 1,000,000 integers using multiple processes. 
+        Instead of a single process performing all computation, the vector is divided across ranks so that each process allocates and sums only its local segment. 
+        Each rank computes a partial sum, then the partial sums are combined into a global result on rank 0 using MPI_Reduce with the MPI_SUM operator. 
+        The program measures execution time around the parallel region using MPI_Wtime() and MPI_Barrier().
+      </p>
+    
+      <div class="gallery">
+        <figure>
+          <img src="assets/thumbs/vectorsumoutput.png" alt="vector_sum output" />
+          <figcaption>Distributed vector sum with timing output</figcaption>
+        </figure>
+      </div>
+    
+      <h2>Program 3: Parallel Matrix Multiply</h2>
+    
+      <p>
+        This program computes C = A x B for two NxN matrices (here N=256). 
+      </p>
+
+      <ul>
+        <li>Rank 0 creates full matrices A and B</li>
+        <li>All ranks need B, so it broadcasts B to all (MPI_Bcast)</li>
+        <li>A is split by rows across ranks using MPI_Scatter</li>
+        <li>Each rank computes only its portion of C (its rows)</li>
+        <li>The partial results are gathered back to rank 0 with MPI_Gather</li>
+        <li>Rank 0 prints a checksum and elapsed time</li>
+      </ul>
+    
+      <p>
+        Rank 0 initializes matrices A and B, then broadcasts B to all ranks with MPI_Bcast so each process has the full right-hand operand. 
+        Rows of A are distributed across ranks using MPI_Scatter, and each rank computes its assigned block of rows locally. 
+        The partial results are collected back to rank 0 using MPI_Gather, where a checksum is printed to verify correctness. 
+        Execution time is measured using MPI_Wtime() and MPI_Barrier().
+      </p>
+    
+      <div class="gallery">
+        <figure>
+          <img src="assets/thumbs/matmuloutput.png" alt="matmul output" />
+          <figcaption>Parallel matrix multiply checksum and timing</figcaption>
+        </figure>
+      </div>
+    </section>
+
     <div class="row">
-      <!-- Link to the repo page (no .git) -->
-      <a class="btn" href="https://github.com/teletraanx/mpi-fundamentals" target="_blank" rel="noopener">View Code on GitHub</a>
+      <a class="btn" href="https://github.com/teletraanx/mpi-fundamentals" target="_blank" rel="noopener">
+        View Code on GitHub
+      </a>
     </div>
 
-    <footer>C++, CMake, MPI(OpenMPI), Linux.</footer>
-    
+    <footer>C++, CMake, MPI (OpenMPI), Linux.</footer>
   </div>
-
-  <script>
-    const btn = document.getElementById("homeBtn");
-    if (btn) {
-      btn.onclick = function () {
-        window.location.href = "https://teletraanx.github.io/";
-      };
-    }
-  </script>
 </body>
 </html>
