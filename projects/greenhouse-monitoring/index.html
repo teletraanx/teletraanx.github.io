@@ -1,0 +1,287 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>LoRa Greenhouse Monitoring System | Abigale Tucker</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <style>
+    :root { color-scheme: dark; }
+    body { margin:0; font:16px/1.55 system-ui, sans-serif; background:#0b0d10; color:#eaeef2; }
+    .wrap { max-width: 900px; margin: 6vh auto; padding: 0 20px; }
+    h1 { font-size: clamp(22px, 4vw, 36px); margin: 0 0 10px; }
+    h2 { font-size: 20px; margin: 28px 0 10px; }
+    h3 { font-size: 16px; margin: 18px 0 8px; opacity: .95; }
+    p  { opacity:.85; margin: 0 0 14px; }
+    ul { margin: 8px 0 16px 20px; opacity: .85; }
+    li { margin: 6px 0; }
+    .row { display:flex; gap:12px; flex-wrap:wrap; margin-top: 12px; }
+
+    /* Buttons */
+    .topbar { display:flex; justify-content:flex-start; padding: 16px 20px 0; }
+    .btn { display:inline-block; padding:10px 14px; border-radius:10px; background:#1a7; color:#041; text-decoration:none; font-weight:700; }
+    .btn.ghost { background:#132; color:#9fd; border: 1px solid rgba(159, 253, 221, .25); }
+    .btn.small { padding:8px 12px; font-weight:600; }
+
+    /* Content blocks */
+    .card {
+      margin-top: 18px;
+      background: rgba(255,255,255,.03);
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius: 14px;
+      padding: 16px;
+      box-shadow: 0 10px 30px rgba(0,0,0,.25);
+    }
+    .callout {
+      border-left: 4px solid rgba(80, 200, 160, .9);
+      padding: 10px 12px;
+      background: rgba(80, 200, 160, .08);
+      border-radius: 10px;
+      margin: 14px 0;
+    }
+
+    /* Code blocks */
+    pre {
+      margin: 10px 0 16px;
+      padding: 12px 14px;
+      border-radius: 12px;
+      overflow: auto;
+      background: #0f1319;
+      border: 1px solid rgba(255,255,255,.08);
+    }
+    code { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace; font-size: 14px; }
+
+    /* Images */
+    .gallery {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 16px;
+      margin-top: 12px;
+    }
+    figure {
+      margin: 0;
+      background: rgba(255,255,255,.02);
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    figure img { width: 100%; height: auto; display:block; image-rendering: auto;}
+    figcaption { padding: 10px 12px; font-size: 14px; opacity: .75; }
+    @media (max-width: 720px) { .gallery { grid-template-columns: 1fr; } }
+
+    footer { opacity:.6; font-size:14px; margin-top:18px; }
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <a class="btn ghost small" href="https://teletraanx.github.io/">← Back to Home</a>
+  </div>
+
+  <div class="wrap">
+    <h1>LoRa Greenhouse Monitoring System</h1>
+    <p>In this project, I designed and deployed an IoT monitoring system to collect, transmit, store, and visualize environmental data from a remote greenhouse using long-range, low-power wireless communication.</p>
+    <p>This system integrates embedded firmware, LoRa radio communication, a data ingestion pipeline, a web-based monitoring dashboard, and is automated to run automatically on boot/reboot.</p>
+
+    <section class="card">
+      <h2>Key Features and Technologies Used</h2>
+    
+      <ul>
+        <li>Programmed two ESP32-S3 microcontroller boards (Heltec WiFi LoRa 32 V3) in C++ to read DHT22 sensor data, transmit, and receive the data over a LoRa radio, providing real-time temperature and humidity readings</li>
+        <li>Built a Python ingestion service that reads serial data from the receiver and stores it in SQLite.</li>
+        <li>Developed a web dashboard using Flask and Chart.js for real-time monitoring, including time-series visualizations and an alert classification system</li>
+        <li>Automated deployment using systemd services on a Raspberry Pi 5, ensuring automatic startup on boot/reboot</li>
+        <li>Exposed the dashboard publicly using secure tunneling with Tailscale Funnel</li>
+      </ul>
+
+      <h2>System Diagram</h2>
+      <div class="gallery">
+        <figure>
+          <img src="/assets/thumbs/greenhouse-monitoring/GreenhouseMonitoringDeployment.png" alt="system diagram" />
+          <figcaption>System Diagram</figcaption>
+        </figure>
+      </div>
+
+      <h3>Embedded Sensor Sender</h3>
+      <p>
+        Using a Heltec WiFi LoRa 32 V3 board (containing ESP32-S3 microcontroller and LoRa radio) connected to a DHT22 temperature and humidity sensor, I built:
+      </p>
+
+      <ul>
+        <li>C++ firmware using Arduino</li>
+        <li>a sensor reading loop</li>
+        <li>OLED display output</li>
+        <li>LoRa packet transmission</li>
+      </ul>
+
+      <p>This node is stationed in the greenhouse to send environmental readings. Example transmitted packet (node, temperature, humidity): </p>
+      <pre>
+        <code>
+          GH0,73.2,49.3
+        </code>
+      </pre>
+
+      <a href="https://github.com/teletraanx/greenhouse-monitoring/blob/main/heltec/lora_sender.ino">Sender Firmware: lora_sender.ino</a>
+
+      <h3>Receiver</h3>
+      <p>
+        A second Heltec board acts as the receiver.
+      </p>
+
+      <ul>
+        <li>receives LoRa packets</li>
+        <li>displayes received data on its OLED</li>
+        <li>outputs structured data to the Raspberry Pi</li>
+      </ul>
+
+      <p>Example output:</p>
+      <pre>
+        <code>
+          Received from GH0: GH0,73.2,49.3 | RSSI: -25
+        </code>
+      </pre>
+
+      <a href="https://github.com/teletraanx/greenhouse-monitoring/blob/main/heltec/lora_receiver.ino">Receiver Firmware: lora_receiver.ino</a>
+
+      <div class="gallery">
+        <figure>
+          <img src="/assets/thumbs/greenhouse-monitoring/greenhouse-monitoring2.png" alt="sender and receiver communicating" />
+          <figcaption>Heltec boards sending and receiving packets.</figcaption>
+        </figure>
+      </div>
+      
+      <h3>3D Printing the Heltec Cases</h3>
+    
+      <p>
+        Using simon.muzi’s (muzi.works) 3D model “H1 - Case for Heltec V3 running Meshtastic,” I printed cases for both boards, drilling a hole in the back of the case for the sender to make room for the sensor. 
+      </p>
+
+      <a href="https://muzi.works/">muzi works</a>
+      
+      <div class="gallery">
+        <figure>
+          <img src="/assets/thumbs/greenhouse-monitoring/greenhouse-monitoring1.png" alt="Sender node in 3D printed case." />
+          <figcaption>Sender node in 3D printed case.</figcaption>
+        </figure>
+      </div>
+
+      <div class="gallery">
+        <figure>
+          <img src="/assets/thumbs/greenhouse-monitoring/greenhouse-monitoring3.png" alt="Sender node stationed in greenhouse." />
+          <figcaption>Sender node stationed in greenhouse.</figcaption>
+        </figure>
+      </div>
+    
+      <h3>Data Ingestion</h3>
+    
+      <p>
+        On a Raspberry Pi 5, I built a Python ingestion service that: 
+      </p>
+
+      <ul>
+        <li>reads serial data continuously from the receiver</li>
+        <li>parses messages into structured values</li>
+        <li>timestamps each reading</li>
+        <li>inserts records into SQLite</li>
+      </ul>
+
+      <a href="https://github.com/teletraanx/greenhouse-monitoring/blob/main/ingest.py">Ingestion Script: ingest.py</a>
+    
+      <div class="gallery">
+        <figure>
+          <img src="/assets/thumbs/greenhouse-monitoring/greenhouse-monitoring0.png" alt="Web dashboard prototype testing data ingestion and storage." />
+          <figcaption>Web dashboard prototype testing data ingestion and storage.</figcaption>
+        </figure>
+      </div>
+    
+      <h3>Web Dashboard</h3>
+    
+      <p>
+        Using Flask and Chart.js, I built a dashboard to visualize and monitor the data.      
+      </p>
+
+      <ul>
+        <li>Latest reading panel</li>
+        <li>time-series charts with color-coded zones for readability (normal, warning, and critical temperatures).</li>
+        <li>Alerting classification and alert history panel</li>
+      </ul>
+
+      <a href="https://github.com/teletraanx/greenhouse-monitoring/blob/main/app.py">Dashboard Script: app.py</a>
+    
+      <div class="gallery">
+        <figure>
+          <img src="/assets/thumbs/greenhouse-monitoring/greenhouse-monitoring4.png" alt="Web dashboard with visualizations, alerts, and styling." />
+          <figcaption>Web dashboard with visualizations, alerts, and styling.</figcaption>
+        </figure>
+      </div>
+
+      <div class="gallery">
+        <figure>
+          <img src="/assets/thumbs/greenhouse-monitoring/greenhouse-monitoring5.png" alt="Web dashboard with visualizations, alerts, and styling." />
+          <figcaption>Web dashboard with visualizations, alerts, and styling.</figcaption>
+        </figure>
+      </div>
+
+      <h3>Accessing the Dashboard</h3>
+
+      <p>
+        To make the dashboard accessible outside the local network, I used Tailscale Funnel to securely expose the dashboard over HTTPS, allowing remote access when off-site. 
+      </p>
+
+      <a href="https://jensfarm.catfish-tiaki.ts.net/">See the Dashboard!</a>
+
+      <h3>Deployment and Automation</h3>
+      <p>To ensure the system operates continuously, I created systemd service unit files for both the ingestion service and the dashboard, as well as running the Tailscale Funnel in the background. This allows the system to automatically start on boot, restart if a service crashes, and run without manual intervention.
+      </p>
+      
+      <p>Running Tailscale Funnel in background:</p>
+      <pre>
+        <code>
+          sudo tailscale funnel --bg localhost:5000
+        </code>
+      </pre>    
+
+      <p>greenhouse-ingest.service (also very similar to greenhouse-dashboard.service):</p>
+
+      <pre>
+        <code>
+          [Unit]
+          Description=Greenhouse Ingestion Service
+          After=network-online.target
+          Wants=network-online.target
+
+          [Service]
+          Type=simple
+          User=teletraanx
+          WorkingDirectory=/home/teletraanx/greenhouse-monitor
+          ExecStart=/home/teletraanx/greenhouse-monitor/venv/bin/python /home/teletraanx/greenhouse-monitor/ingest.py
+          Restart=always
+          RestartSec=5
+
+          [Install]
+          WantedBy=multi-user.target
+        </code>
+      </pre>
+
+      <h2>Open Source Contribution</h2>
+      
+      <p>
+        Developed LoRa-based sensor communication examples (DHT22) and submitted an open-source contribution to ropg’s heltec_esp32_lora_v3 repo, including debugging and resolving OLED initialization issues on Heltec ESP32 LoRa v3 hardware.
+      </p>
+
+      <h2>Future Improvements and Expansion</h2>
+
+      <ul>
+        <li>Email alerting</li>
+        <li>Multi-node/greenhouse support</li>
+        <li>More sensors and readings!</li>
+      </ul>
+
+    <div class="row">
+      <a class="btn" href="https://github.com/teletraanx/greenhouse-monitoring/tree/main" target="_blank" rel="noopener">
+        View Code on GitHub
+      </a>
+    </div>
+
+    <footer>Embedded, C++, Arduino, Raspberry Pi, Python</footer>
+  </div>
+</body>
+</html>
