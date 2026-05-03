@@ -1,0 +1,302 @@
+:root {
+      color-scheme: dark;
+
+      --maxw: 940px;
+      --bg: #0b0c10;
+      --surface: #11131a;
+      --surface-2: #171a23;
+      --text: #f2efe9;
+      --muted: #aaa39a;
+      --border: rgba(242, 239, 233, 0.12);
+      --accent: #c9a66b;
+      --accent-soft: rgba(201, 166, 107, 0.14);
+      --code-bg: #08090d;
+      --shadow: 0 18px 45px rgba(0, 0, 0, 0.35);
+      --radius: 18px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      font: 16px/1.65 Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(201, 166, 107, 0.11), transparent 34rem),
+        linear-gradient(180deg, #0b0c10 0%, #090a0d 100%);
+    }
+
+    a {
+      color: var(--accent);
+      text-decoration-thickness: 1px;
+      text-underline-offset: 3px;
+    }
+
+    a:hover {
+      color: var(--text);
+    }
+
+    .topbar {
+      max-width: var(--maxw);
+      margin: 0 auto;
+      padding: 1.25rem 1.25rem 0;
+    }
+
+    .wrap {
+      max-width: var(--maxw);
+      margin: 0 auto;
+      padding: 2rem 1.25rem 3rem;
+    }
+
+    .back-link,
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: fit-content;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      color: var(--text);
+      background: rgba(255, 255, 255, 0.04);
+      text-decoration: none;
+      font-weight: 700;
+      transition: transform 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+    }
+
+    .back-link {
+      padding: 0.5rem 0.75rem;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    .btn {
+      padding: 0.7rem 1rem;
+      background: var(--accent-soft);
+      border-color: rgba(201, 166, 107, 0.38);
+    }
+
+    .back-link:hover,
+    .btn:hover {
+      transform: translateY(-2px);
+      border-color: rgba(201, 166, 107, 0.5);
+      background: rgba(201, 166, 107, 0.16);
+      color: var(--text);
+    }
+
+    .project-hero {
+      margin: 2rem 0 1.5rem;
+      padding-bottom: 1.5rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .eyebrow {
+      margin: 0 0 0.5rem;
+      color: var(--accent);
+      font-size: 0.78rem;
+      font-weight: 800;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      margin: 0;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: clamp(2.15rem, 5vw, 4rem);
+      line-height: 1;
+      letter-spacing: -0.045em;
+    }
+
+    .summary {
+      max-width: 760px;
+      margin: 1rem 0 0;
+      color: var(--muted);
+      font-size: 1.05rem;
+    }
+
+    h2 {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin: 2.25rem 0 0.9rem;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: clamp(1.45rem, 3vw, 2rem);
+      line-height: 1.15;
+      letter-spacing: -0.03em;
+    }
+
+    h2::after {
+      content: "";
+      height: 1px;
+      flex: 1;
+      background: linear-gradient(90deg, var(--border), transparent);
+    }
+
+    h3 {
+      margin: 1.25rem 0 0.5rem;
+      font-size: 1rem;
+      color: var(--text);
+    }
+
+    p {
+      margin: 0 0 1rem;
+      color: var(--muted);
+    }
+
+    ul {
+      margin: 0.5rem 0 1.2rem 1.25rem;
+      padding: 0;
+      color: var(--muted);
+    }
+
+    li {
+      margin: 0.35rem 0;
+    }
+
+    code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      font-size: 0.92em;
+      color: #efe0bd;
+    }
+
+    p code,
+    li code {
+      padding: 0.1rem 0.32rem;
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      background: rgba(255, 255, 255, 0.04);
+    }
+
+    pre {
+      margin: 0.9rem 0 1.25rem;
+      padding: 1rem;
+      overflow: auto;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      background: var(--code-bg);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+    }
+
+    pre code {
+      display: block;
+      white-space: pre;
+      color: #ded8cb;
+      font-size: 0.9rem;
+      line-height: 1.55;
+    }
+
+    .card {
+      margin-top: 1.5rem;
+      padding: 1.25rem;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.035), transparent),
+        var(--surface);
+      box-shadow: var(--shadow);
+    }
+
+    .link-row,
+    .row {
+      display: flex;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+      margin: 1rem 0 1.25rem;
+    }
+
+    .source-link {
+      display: inline-flex;
+      width: fit-content;
+      padding: 0.45rem 0.7rem;
+      border: 1px solid rgba(201, 166, 107, 0.32);
+      border-radius: 999px;
+      background: var(--accent-soft);
+      color: var(--text);
+      font-size: 0.9rem;
+      font-weight: 700;
+      text-decoration: none;
+    }
+
+    .source-link:hover {
+      background: rgba(201, 166, 107, 0.2);
+    }
+
+    .gallery {
+      display: grid;
+      gap: 1rem;
+      margin: 1rem 0 1.75rem;
+    }
+
+    figure {
+      margin: 0;
+      overflow: hidden;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.025);
+    }
+
+    figure img {
+      display: block;
+      width: 100%;
+      height: auto;
+    }
+
+    .diagram-frame {
+        overflow-x: auto;
+        overflow-y: hidden;
+        padding-bottom: 0.5rem; /* prevents cut-off */
+        }
+
+    .diagram-frame img {
+        display: block;
+        width: 100%;
+        height: auto;
+        transform: scale(0.85);
+        transform-origin: top left;
+        }
+
+    @media (max-width: 700px) {
+        .diagram-frame img {
+            transform: scale(0.95);
+        }
+    }
+
+    figcaption {
+      padding: 0.75rem 0.9rem;
+      color: var(--muted);
+      font-size: 0.92rem;
+      border-top: 1px solid var(--border);
+    }
+
+    .project-footer {
+      margin-top: 1.75rem;
+      padding-top: 1rem;
+      border-top: 1px solid var(--border);
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    @media (max-width: 640px) {
+      .wrap {
+        padding-top: 1.25rem;
+      }
+
+      .card {
+        padding: 1rem;
+      }
+
+      h2 {
+        align-items: flex-start;
+      }
+
+      h2::after {
+        margin-top: 0.65rem;
+      }
+    }
+
+    
