@@ -1,0 +1,459 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Mandelbrot Renderer in x86-64 Assembly (NASM) | Abigale Tucker</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <style>
+    :root { color-scheme: dark; }
+    body { margin:0; font:16px/1.55 system-ui, sans-serif; background:#0b0d10; color:#eaeef2; }
+    .wrap { max-width: 900px; margin: 6vh auto; padding: 0 20px; }
+    h1 { font-size: clamp(22px, 4vw, 36px); margin: 0 0 10px; }
+    h2 { font-size: 20px; margin: 28px 0 10px; }
+    h3 { font-size: 16px; margin: 18px 0 8px; opacity: .95; }
+    p  { opacity:.85; margin: 0 0 14px; }
+    ul { margin: 8px 0 16px 20px; opacity: .85; }
+    li { margin: 6px 0; }
+    .row { display:flex; gap:12px; flex-wrap:wrap; margin-top: 12px; }
+
+    /* Buttons */
+    .topbar { display:flex; justify-content:flex-start; padding: 16px 20px 0; }
+    .btn { display:inline-block; padding:10px 14px; border-radius:10px; background:#1a7; color:#041; text-decoration:none; font-weight:700; }
+    .btn.ghost { background:#132; color:#9fd; border: 1px solid rgba(159, 253, 221, .25); }
+    .btn.small { padding:8px 12px; font-weight:600; }
+
+    /* Content blocks */
+    .card {
+      margin-top: 18px;
+      background: rgba(255,255,255,.03);
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius: 14px;
+      padding: 16px;
+      box-shadow: 0 10px 30px rgba(0,0,0,.25);
+    }
+    .callout {
+      border-left: 4px solid rgba(80, 200, 160, .9);
+      padding: 10px 12px;
+      background: rgba(80, 200, 160, .08);
+      border-radius: 10px;
+      margin: 14px 0;
+    }
+
+    /* Code blocks */
+    pre {
+      margin: 10px 0 16px;
+      padding: 12px 14px;
+      border-radius: 12px;
+      overflow: auto;
+      background: #0f1319;
+      border: 1px solid rgba(255,255,255,.08);
+    }
+    code { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace; font-size: 14px; }
+
+    /* Images */
+    .gallery {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 16px;
+      margin-top: 12px;
+    }
+    figure {
+      margin: 0;
+      background: rgba(255,255,255,.02);
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    figure img { width: 100%; height: auto; display:block; image-rendering: auto;}
+    figcaption { padding: 10px 12px; font-size: 14px; opacity: .75; }
+    @media (max-width: 720px) { .gallery { grid-template-columns: 1fr; } }
+
+    footer { opacity:.6; font-size:14px; margin-top:18px; }
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <a class="btn ghost small" href="https://teletraanx.github.io/">← Back to Home</a>
+  </div>
+
+  <div class="wrap">
+    <h1>Mandelbrot Renderer in x86-64 Assembly (NASM)</h1>
+    <p>In this project, I wrote a Mandelbrot set renderer in assembly to generate a greyscale image by mapping pixel coordinates to complex numbers and iteratively applying the function: <code>z=z^2+c</code></p>
+
+    <section class="card">
+      <h2>Key Concepts:</h2>
+    
+      <ul>
+        <li>x86-64 Assembly (NASM) programming</li>
+        <li>System V AMD64 ABI compliance</li>
+        <li>C standard library functions</li>
+        <li>Double-precision floating-point arithmetic </li>
+        <li>Algorithm implementation from the Mandelbrot set mathematical definition </li>
+      </ul>
+
+      <h2>Argument Parsing and File Output</h2>
+      <p>
+        To begin, my goal was to simply accept command-line arguments and generate a valid image file. 
+      </p>
+      <p>I wanted my program to take three command-line arguments: <code>./mandelbrot image_size iterations output_file</code></p>
+      <ul>
+        <li><code>image_size</code>: determines both the width and height of the image</li>
+        <li><code>iterations</code>: the number of times to apply the Mandelbrot function per pixel</li>
+        <li><code>output_file</code>: the path where the generated image will be written</li>
+      </ul>
+
+      <p>I used functions from the C standard library to handle parsing and file I/O:</p>
+      <p><code>atoi</code> to convert command-line strings into integers:</p>
+      <pre>
+        <code>
+          …
+          ; size = atoi(argv[1])
+          mov rdi, [rbx + 8]    ; argv[1]
+          call atoi    ; convert image size ascii to int in eax
+          mov r12d, eax    ; IMAGE SIZE = r12d (using rXd registers for lower 32 bits)
+          …
+          ; iterations = atoi(argv[2])
+          mov rdi, [rbx + 16]    ; argv[2]
+          call atoi    ; iterations ascii to int in eax
+          …
+        </code>
+      </pre>
+
+      <p><code>fopen</code> to open the output file in binary mode:</p>
+      <pre>
+        <code>
+          …
+          ; FILE* fp = fopen(path, "wb")
+          mov rdi, r14    ; filename
+          mov rsi, write_mode    ; mode: write binary
+          call fopen    ; FILE* = rax
+          …
+        </code>
+      </pre>
+
+      <p>The image is written using the binary PGM format, which has this structure:</p>
+      <pre>
+        <code>
+          P5
+          width height
+          255
+          raw pixel bytes
+        </code>
+      </pre>
+
+      <p><code>fprintf</code> to write the PGM header:</p>
+      <pre>
+        <code>
+          …
+          mov r15, rax    ; FILE* = r15
+
+          ; fprintf(fp, header_fmt, size, size)
+          mov rdi, r15    ; FILE*
+          mov rsi, header_fmt    ; format 
+          mov edx, r12d    ; first %d width
+          mov ecx, r12d    ; second %d height
+          mov eax, 0    ; for variadic functions, I'm passing no vector registers 
+          call fprintf
+          …
+        </code>
+      </pre>
+
+      <p>To generate the image, I used nested loops over rows and columns, assigning every pixel a constant grayscale value of 128.</p>
+      <p><code>fputc</code> to write pixel data:</p>
+      <pre>
+        <code>
+          …
+          ; fputc(128, fp) (take int and write as byte)
+            mov edi, 128    ; character (int)
+            mov rsi, r15    ; FILE*
+            call fputc
+          …
+        </code>
+      </pre>
+
+      <p><code>fclose</code> to properly close the file:</p>
+      <pre>
+        <code>
+          …
+          mov rdi, r15    ; FILE*
+          call fclose
+          …
+        </code>
+      </pre>
+
+      <p>To use these functions, it was important to comply to ABI calling conventions, so I passed arguments in the appropriate registers (<code>rdi, rsi, rdx</code>, etc.) and preserved callee-saved registers (<code>rbx, r12-15</code>) across function calls.</p>
+      <pre>
+        <code>
+          …
+              ; preserving callee-saved registers
+              ; will be using r12-r15 because they survive function calls 
+              push rbx
+              push r12
+              push r13
+              push r14
+              push r15
+          …
+          .clean:
+              pop r15
+              pop r14
+              pop r13
+              pop r12
+            pop rbx 
+
+            ret
+        </code>
+      </pre>
+
+      <p>At this point, I could take command-line arguments and produce a uniform gray image to prove that:</p>
+      <ul>
+        <li>the file format was correct</li>
+        <li>pixel data was writing properly </li>
+        <li>the output image could be opened successfully </li>
+      </ul>
+      <p>Now, I could focus on rendering logic without worrying about input parsing or file output issues.</p>
+
+      <a href="https://github.com/teletraanx/assembly-mandelbrot/blob/main/uniformgrey.asm">Argument Parsing and File Output: uniformgrey.asm</a>
+      <div class="gallery">
+        <figure>
+          <img src="/assets/thumbs/assemblymandelbrot/grey.png" alt="uniformgrey" />
+          <figcaption>Uniform Grey PGM Image</figcaption>
+        </figure>
+      </div>
+
+      <h2>Pixel Traversal and Gradient Testing</h2>
+      <p>My next goal was to verify that my nested row/column loops were functioning correctly before introducing floating-point math or Mandelbrot logic. I wanted to ensure that:</p>
+      <ul>
+        <li>each pixel is visited exactly once</li>
+        <li>row and column indexing is correct</li>
+        <li>the image is written in the correct orientation</li>
+      </ul>
+
+      <p>Rather than writing a constant value (128) for every pixel, I computed a grayscale value based on the current row and column, then wrote the result to the image.</p>
+      <pre>
+        <code>
+          …
+          ; color = (row + col) % 256
+          mov eax, ebx        ; eax = row
+          add eax, r13d       ; eax = row + col
+          and eax, 255        ; keep only 0-255
+
+          ; fputc(color, fp)
+          mov edi, eax
+          mov rsi, r15
+          call fputc
+          …
+        </code>
+      </pre>
+
+      <p><code>row + col</code> produces an increasing value across the image, and <code>and eax, 255</code> keeps the value within grayscale bounds. This should result in a diagonal gradient across the image.</p>
+      
+      <a href="https://github.com/teletraanx/assembly-mandelbrot/blob/main/diagonalgradient.asm">Pixel Traversal and Gradient Testing: diagonalgradient.asm</a>
+      <div class="gallery">
+        <figure>
+          <img src="/assets/thumbs/assemblymandelbrot/gradient.png" alt="gradient" />
+          <figcaption>Diagonal Gradient PGM Image</figcaption>
+        </figure>
+      </div>      
+
+      <h2>Floating-Point Coordinate Mapping</h2>
+      <p>My next goal was to convert each pixel’s (<code>row, col</code>) position into a corresponding point in the complex plane because the Mandelbrot set operates on complex numbers, not pixel indices.</p>
+      <p>Map each pixel to a complex number: <code>c = cr + ci*i</code></p>
+
+      <ul>
+        <li><code>cr</code> (real component) is derived from the column index</li>
+        <li><code>ci</code> (imaginary component) is derived from the row index</li>
+      </ul>
+
+      <p>To achieve this, I mapped integer pixel coordinates into double-precision floating-point values. </p>
+      <p>For the horizontal axis (real component): <code>cr = real_min + col * (real_max - real_min) / (size -1)</code></p>
+      <ul>
+        <li>left edge is -1.0</li>
+        <li>right edge is 1.0</li>
+        <li>values in between are smoothly interpolated</li>
+      </ul>
+
+      <p>To support floating-point calculations, I added constants:</p>
+      <ul>
+        <li>real_min: dq -1.0</li>
+        <li>real_max: dq 1.0</li>
+        <li>gray_scale: dq 127.5</li>
+      </ul>
+
+      <p>Then, I computed the mapped value:</p>
+      <pre>
+        <code>
+          …
+          ; xmm0 = real_max - real_min
+          movsd xmm0, [real_max]
+          subsd xmm0, [real_min]
+
+          ; xmm1 = col as double
+          cvtsi2sd xmm1, r13d
+
+          ; xmm0 = col * (real_max - real_min)
+          mulsd xmm0, xmm1
+
+          ; xmm2 = size - 1 as double
+          mov eax, r12d
+          dec eax
+          cvtsi2sd xmm2, eax
+
+          ; xmm0 = col * range / (size - 1)
+          divsd xmm0, xmm2
+
+          ; xmm0 = real_min + ...
+          addsd xmm0, [real_min]
+        </code>
+      </pre>
+
+      <p>At this point, <code>xmm0</code> contains the real coordinate <code>cr</code> in the range [-1, 1].</p>
+      <p>Before implementing the Mandelbrot algorithm, I used this mapped value to generate a horizontal gradient to verify that the mapping was correct.</p>
+      <p>To convert from the range [-1, 1] to [0, 255], I applied: <code>color = (cr + 1.0) * 127.5</code></p>
+      <pre>
+        <code>
+          ; shift from [-1, 1] to [0, 2]
+          addsd xmm0, [real_max]
+
+          ; scale to [0, 255]
+          mulsd xmm0, [gray_scale]
+
+          ; convert double to integer
+          cvttsd2si eax, xmm0
+        </code>
+      </pre>
+      <p>Writing the pixel:</p>
+      <pre>
+        <code>
+          ; fputc(color, fp)
+          mov edi, eax
+          mov rsi, r15
+          call fputc
+          …
+        </code>
+      </pre>
+      <p>
+        Now, I was able to confirm that integer pixel coordinates were correctly mapped into double-precision floating-point values and that floating-point instructions (<code>cvtsi2sd, mulsd, divsd, addsd</code>) were working correctly, which is important because the Mandelbrot algorithm will depend entirely on accurate mapping from pixels to complex numbers. 
+      </p>
+
+      <a href="https://github.com/teletraanx/assembly-mandelbrot/blob/main/floatingpointgradient.asm">Floating-Point Coordinate Mapping: floatingpointgradient.asm</a>
+
+      <div class="gallery">
+        <figure>
+          <img src="/assets/thumbs/assemblymandelbrot/floatgradient.png" alt="floatgradient" />
+          <figcaption>Floating-Point Gradient PGM Image.</figcaption>
+        </figure>
+      </div>
+
+      <h2>Mandelbrot Iteration</h2>
+    
+      <p>My final goal was to implement the Mandelbrot iteration itself and determine how each pixel should be colored. </p>
+      <p>For each pixel, I now have a corresponding complex number: <code>c = cr + ci*i</code></p>
+      <p>The Mandelbrot set is defined by repeatedly applying <code>z = z^2 + c</code> starting from <code>z = 0</code>.</p>
+      <p>Now, I need to be able to determine if each pixel remains bounded, or if it diverges to infinity. To implement this, I represented the complex number <code>z</code> using two double-precision values: </p>
+      <ul>
+        <li><code>zr</code> = real component (stored in <code>xmm2</code>)</li>
+        <li><code>zi</code> = imaginary component (stored in <code>xmm3</code>)</li>
+      </ul>
+      <p>If <code>|z| > 2</code>, the point escaped, and will be colored white. If it never escaped after max iterations, it will be colored black. </p>
+      <ul>
+        <li><code>zr_next = zr*zr - zi*zi + cr</code></li>
+        <li><code>zi_next = 2*zr*zi + ci</code></li>
+      </ul>
+      <p>Inside the loop: </p>
+      <pre>
+        <code>
+          …
+          ; zr_next = zr*zr - zi*zi + cr
+          movsd xmm4, xmm2    ; xmm4 = zr
+          mulsd xmm4, xmm2    ; xmm4 = zr*zr
+
+          movsd xmm5, xmm3
+          mulsd xmm5, xmm3    ; xmm5 = zi*zi
+
+          subsd xmm4, xmm5    ; xmm4 = zr*zr - zi*zi
+          addsd xmm4, xmm6    ; xmm4 = zr_next = + cr
+
+          ; zi_next = 2*zr*zi + ci
+          movsd xmm5, xmm2
+          mulsd xmm5, xmm3    ; xmm5 = zr*zi
+          mulsd xmm5, [two]    ; *2
+          addsd xmm5, xmm7    ; xmm5 = zi_next = +ci
+        </code>
+      </pre>
+      <p>The updated values are stored back into zr and zi for the next iteration.</p>
+      <pre>
+        <code>
+          ; updating with new values
+          movsd xmm2, xmm4    ; xmm2 = new zr 
+          movsd xmm3, xmm5    ; xmm3 = new zi
+          …
+        </code>
+      </pre>
+
+      <p>To determine whether a point diverges, I used the Mandelbrot escape condition: <code>|z| > 2</code>. Instead of computing a square root (which is expensive), I used the equivalent comparison: <code>zr*zr + zi*zi > 4</code></p>
+      <pre>
+        <code>
+          …
+              ; escape check
+              ; if zr*zr + zi*zi > 4.0, escaped
+              movsd xmm0, xmm2    ; xmm0 = zr
+              mulsd xmm0, xmm2    ; zr*zr
+
+              movsd xmm1, xmm3
+              mulsd xmm1, xmm3    ; zi*zi
+
+              addsd xmm0, xmm1    ; xmm0 = zr*zr + zi*zi
+
+              comisd xmm0, [escape4]    ; compare mag squared to 4.0
+              ja .escaped    ; if above, it escaped
+          …
+        </code>
+      </pre>
+      <p>Coloring the pixels: </p>
+      <pre>
+        <code>
+          …
+          .not_escaped:
+              ; if this label is reached, point never escaped during iterations
+              mov eax, 0    ; black
+              jmp .write_pixel
+
+          .escaped:
+              mov eax, 255    ; white
+          …
+        </code>
+      </pre>
+      <p>So, for each pixel: </p>
+      <ul>
+        <li>initialize <code>z = 0</code></li>
+        <li>iterate up to N times</li>
+        <li>stop early if escape condition is met</li>
+        <li>assign a color based on the result </li>
+      </ul>
+      
+      <a href="https://github.com/teletraanx/assembly-mandelbrot/blob/main/mandelbrot.asm">Mandelbrot Iteration: mandelbrot.asm</a>
+      <pre>
+        <code>
+          nasm -felf64 mandelbrot.asm -o mandelbrot.o
+          gcc -no-pie -znoexecstack mandelbrot.o -o mandelbrot
+          ./mandelbrot 512 100 mandel.pgm
+        </code>
+      </pre>
+      
+      <div class="gallery">
+        <figure>
+          <img src="/assets/thumbs/assemblymandelbrot/mandelbrot.png" alt="mandelbrot" />
+          <figcaption>Mandelbrot PGM Image.</figcaption>
+        </figure>
+      </div>
+
+    <div class="row">
+      <a class="btn" href="https://github.com/teletraanx/assembly-mandelbrot/tree/main" target="_blank" rel="noopener">
+        View Code on GitHub
+      </a>
+    </div>
+
+    <footer>Assembly, C</footer>
+  </div>
+</body>
+</html>
