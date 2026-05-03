@@ -4,85 +4,24 @@
   <meta charset="utf-8" />
   <title>Linux HPC Cluster: Slurm, Ansible Automation, and MPI Operations | Abigale Tucker</title>
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <style>
-    :root { color-scheme: dark; }
-    body { margin:0; font:16px/1.55 system-ui, sans-serif; background:#0b0d10; color:#eaeef2; }
-    .wrap { max-width: 900px; margin: 6vh auto; padding: 0 20px; }
-    h1 { font-size: clamp(22px, 4vw, 36px); margin: 0 0 10px; }
-    h2 { font-size: 20px; margin: 28px 0 10px; }
-    h3 { font-size: 16px; margin: 18px 0 8px; opacity: .95; }
-    p  { opacity:.85; margin: 0 0 14px; }
-    ul { margin: 8px 0 16px 20px; opacity: .85; }
-    li { margin: 6px 0; }
-    .row { display:flex; gap:12px; flex-wrap:wrap; margin-top: 12px; }
-
-    /* Buttons */
-    .topbar { display:flex; justify-content:flex-start; padding: 16px 20px 0; }
-    .btn { display:inline-block; padding:10px 14px; border-radius:10px; background:#1a7; color:#041; text-decoration:none; font-weight:700; }
-    .btn.ghost { background:#132; color:#9fd; border: 1px solid rgba(159, 253, 221, .25); }
-    .btn.small { padding:8px 12px; font-weight:600; }
-
-    /* Content blocks */
-    .card {
-      margin-top: 18px;
-      background: rgba(255,255,255,.03);
-      border: 1px solid rgba(255,255,255,.08);
-      border-radius: 14px;
-      padding: 16px;
-      box-shadow: 0 10px 30px rgba(0,0,0,.25);
-    }
-    .callout {
-      border-left: 4px solid rgba(80, 200, 160, .9);
-      padding: 10px 12px;
-      background: rgba(80, 200, 160, .08);
-      border-radius: 10px;
-      margin: 14px 0;
-    }
-
-    /* Code blocks */
-    pre {
-      margin: 10px 0 16px;
-      padding: 12px 14px;
-      border-radius: 12px;
-      overflow: auto;
-      background: #0f1319;
-      border: 1px solid rgba(255,255,255,.08);
-    }
-    code { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace; font-size: 14px; }
-
-    /* Images */
-    .gallery {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 16px;
-      margin-top: 12px;
-    }
-    figure {
-      margin: 0;
-      background: rgba(255,255,255,.02);
-      border: 1px solid rgba(255,255,255,.08);
-      border-radius: 12px;
-      overflow: hidden;
-    }
-    figure img { width: 100%; height: auto; display:block; image-rendering: auto;}
-    figcaption { padding: 10px 12px; font-size: 14px; opacity: .75; }
-    @media (max-width: 720px) { .gallery { grid-template-columns: 1fr; } }
-
-    footer { opacity:.6; font-size:14px; margin-top:18px; }
-  </style>
+  <link rel="stylesheet" href="../../assets/project.css" />
 </head>
+
 <body>
   <div class="topbar">
-    <a class="btn ghost small" href="https://teletraanx.github.io/">← Back to Home</a>
+    <a class="back-link" href="https://teletraanx.github.io/">← Back to Home</a>
   </div>
 
-  <div class="wrap">
-    <h1>Linux HPC Cluster: Slurm, Ansible Automation, and MPI Operations</h1>
-    <p>In this project, I built a small Linux cluster to practice system design, deployment, automation, validation, recovery, and general operations in a small-scale HPC environment. I built a controller node (head/login) that manages cluster services and a worker compute node that executes scheduled workloads. My goal was to practice systems engineering workflows used in HPC: deterministic networking, repeatable configuration, scheduler-driven execution, authentication, validation, troubleshooting, and recovery.</p>
+  <main class="wrap">
+    <header class="project-hero">
+      <p class="eyebrow">High-Performance Computing Project</p>
+      <h1>Linux HPC Cluster: Slurm, Ansible Automation, and MPI Operations</h1>
+      <p class="summary">In this project, I built a small Linux cluster to practice system design, deployment, automation, validation, recovery, and general operations in a small-scale HPC environment. I built a controller node (head/login) that manages cluster services and a worker compute node that executes scheduled workloads. My goal was to practice systems engineering workflows used in HPC: deterministic networking, repeatable configuration, scheduler-driven execution, authentication, validation, troubleshooting, and recovery.</p>
+    </header>
 
     <section class="card">
       <h2>Concepts</h2>
-    
+
       <ul>
         <li>Linux cluster administration and deterministic networking</li>
         <li>Automation/configuration management with Ansible</li>
@@ -125,9 +64,9 @@
       <p>
         Clusters rely on internal networking where nodes can reach each other reliably, and hostnames resolve consistently. I set up a private host-only cluster network for node-to-node traffic and a NAT interface for package installs.
       </p>
-    
+
       <p>
-        Each VM uses two adapters:  
+        Each VM uses two adapters:
       </p>
 
       <ul>
@@ -140,29 +79,21 @@
         Head node:
       </p>
 
-      <pre>
-        <code>
-          sudo nmcli con mod hostonly \
-            ipv4.method manual \
-            ipv4.addresses 192.168.56.10/24
-          
-          sudo nmcli con up hostonly
-        </code>
-      </pre>
+      <pre><code>sudo nmcli con mod hostonly \
+  ipv4.method manual \
+  ipv4.addresses 192.168.56.10/24
+
+sudo nmcli con up hostonly</code></pre>
 
       <p>
         Compute node:
       </p>
 
-      <pre>
-        <code>
-          sudo nmcli con mod hostonly \
-            ipv4.method manual \
-            ipv4.addresses 192.168.56.11/24
-          
-          sudo nmcli con up hostonly
-        </code>
-      </pre>
+      <pre><code>sudo nmcli con mod hostonly \
+  ipv4.method manual \
+  ipv4.addresses 192.168.56.11/24
+
+sudo nmcli con up hostonly</code></pre>
 
       <div class="gallery">
         <figure>
@@ -170,37 +101,25 @@
           <figcaption>ip addr and ip route output</figcaption>
         </figure>
       </div>
-      
+
       <h3>Host Identity and Name Resolution</h3>
-    
+
       <p>
         I set hostnames and /etc/hosts so that both nodes can resolve each other consistently.
       </p>
 
-      <pre>
-        <code>
-          sudo hostnamectl set-hostname head # on head node
-          sudo hostnamectl set-hostname cone # on compute node (c-one)
-        </code>
-      </pre>
+      <pre><code>sudo hostnamectl set-hostname head # on head node
+sudo hostnamectl set-hostname cone # on compute node (c-one)</code></pre>
 
       <p> Edited /etc/hosts on both nodes:</p>
 
-      <pre>
-        <code>
-          192.168.56.10 head
-          192.168.56.11 cone
-        </code>
-      </pre>
+      <pre><code>192.168.56.10 head
+192.168.56.11 cone</code></pre>
 
       <h3>Validation</h3>
-      <pre>
-        <code>
-          ping -c 3 cone # from head node
-          ping -c 3 head # from compute node
-        </code>
-      </pre>
-      
+      <pre><code>ping -c 3 cone # from head node
+ping -c 3 head # from compute node</code></pre>
+
       <div class="gallery">
         <figure>
           <img src="/assets/thumbs/pingcone.png" alt="pingconeoutput" />
@@ -214,55 +133,43 @@
           <figcaption>ping -c 3 head output</figcaption>
         </figure>
       </div>
-    
+
       <h2>Cluster Hygiene and Chrony</h2>
-    
+
       <p>
         I installed baseline updates, essential utilities, and time synchronization. Distributed systems depend on time synchronization. For example, clock drift will break MUNGE authentication.
       </p>
 
-      <pre>
-        <code>
-          sudo dnf -y update
-          sudo dnf -y install vim git curl wget chrony
-          sudo systemctl enable --now chronyd
-          chronyc tracking
-        </code>
-      </pre>
-    
+      <pre><code>sudo dnf -y update
+sudo dnf -y install vim git curl wget chrony
+sudo systemctl enable --now chronyd
+chronyc tracking</code></pre>
+
       <div class="gallery">
         <figure>
           <img src="/assets/thumbs/firstchronyctracking.png" alt="chronyc tracking" />
           <figcaption>chronyc tracking output</figcaption>
         </figure>
       </div>
-    
+
       <h2>Passwordless SSH</h2>
-    
+
       <p>
         Ansible will require a control point that can reach nodes. I configured passwordless SSH from the head node to the compute node so that automation can run unattended and repeatedly for my controller/worker management.
       </p>
 
-      <pre>
-        <code>
-          sh-keygen -t ed25519 # generate key on head
-          ssh-copy-id youruser@cone # copy to compute node
-          ssh cone # tests
-        </code>
-      </pre>
-    
+      <pre><code>sh-keygen -t ed25519 # generate key on head
+ssh-copy-id youruser@cone # copy to compute node
+ssh cone # tests</code></pre>
+
       <p>
         Locking SSH config:
       </p>
 
-      <pre>
-        <code>
-          Host cone
-            HostName cone
-            User youruser
-        </code>
-      </pre>
-    
+      <pre><code>Host cone
+  HostName cone
+  User youruser</code></pre>
+
       <div class="gallery">
         <figure>
           <img src="/assets/thumbs/ssh.png" alt="ssh" />
@@ -273,34 +180,28 @@
       <h2>Ansible Automation Framework</h2>
 
       <p>
-        Ansible will turn node configuration into versionable, repeatable infrastructure code. The head node acts as the controller, applying changes to the compute node(s) consistently. 
+        Ansible will turn node configuration into versionable, repeatable infrastructure code. The head node acts as the controller, applying changes to the compute node(s) consistently.
       </p>
 
       <h3>Inventory Design</h3>
-      <a href="https://github.com/teletraanx/mini-hpc/blob/main/ansible/inventory.ini">inventory.ini</a>
+      <div class="link-row">
+        <a class="source-link" href="https://github.com/teletraanx/mini-hpc/blob/main/ansible/inventory.ini" target="_blank" rel="noopener">inventory.ini</a>
+      </div>
 
-      <pre>
-        <code>
-          [controllers]
-          head ansible_host=192.168.56.10 ansible_connection=local
+      <pre><code>[controllers]
+head ansible_host=192.168.56.10 ansible_connection=local
 
-          [compute]
-          cone ansible_host=192.168.56.11
+[compute]
+cone ansible_host=192.168.56.11
 
-          [all:vars]
-          ansible_user=youruser
-          ansible_become=true
-        </code>
-      </pre>    
+[all:vars]
+ansible_user=youruser
+ansible_become=true</code></pre>
 
       <p>Enabling passwordless sudo:</p>
 
-      <pre>
-        <code>
-          sudo visudo
-          youruser ALL=(ALL)NOPASSWD:ALL
-        </code>
-      </pre>
+      <pre><code>sudo visudo
+youruser ALL=(ALL)NOPASSWD:ALL</code></pre>
 
       <div class="gallery">
         <figure>
@@ -311,8 +212,10 @@
 
       <h2>Baseline Config via Ansible</h2>
 
-      <a href="https://github.com/teletraanx/mini-hpc/blob/main/ansible/baseline.yml">baseline.yml</a>
-      
+      <div class="link-row">
+        <a class="source-link" href="https://github.com/teletraanx/mini-hpc/blob/main/ansible/baseline.yml" target="_blank" rel="noopener">baseline.yml</a>
+      </div>
+
       <p>
         Now, instead of installing common packages manually on each node, I can define a baseline configuration and push it via `ansible-playbook`. This automation ensures both nodes have consistent tooling (Python, Chrony, etc.), and re-running the playbook will be safe.
       </p>
@@ -332,7 +235,9 @@
 
       <h3>Installing Slurm and MUNGE via Ansible</h3>
 
-      <a href="https://github.com/teletraanx/mini-hpc/blob/main/ansible/slurm_install.yml">slurm_install.yml</a>
+      <div class="link-row">
+        <a class="source-link" href="https://github.com/teletraanx/mini-hpc/blob/main/ansible/slurm_install.yml" target="_blank" rel="noopener">slurm_install.yml</a>
+      </div>
 
       <p>
         Enabling CRB, EPEL, and installing: slurm, slurmctld, slurmd, munge
@@ -348,7 +253,7 @@
       <h3>MUNGE Setup</h3>
 
       <p>
-        MUNGE uses a shared key (/etc/munge/munge.key) across the cluster. This key must be identical and properly permissioned on every node. 
+        MUNGE uses a shared key (/etc/munge/munge.key) across the cluster. This key must be identical and properly permissioned on every node.
       </p>
 
       <ul>
@@ -367,10 +272,12 @@
 
       <h2>Slurm Configuration and Scheduling</h2>
 
-      <a href="https://github.com/teletraanx/mini-hpc/blob/main/ansible/push_slurm_conf.yml">push_slurm_conf.yml</a>
+      <div class="link-row">
+        <a class="source-link" href="https://github.com/teletraanx/mini-hpc/blob/main/ansible/push_slurm_conf.yml" target="_blank" rel="noopener">push_slurm_conf.yml</a>
+      </div>
 
       <p>
-        Slurm is configured via slurm.conf, which defines cluster name, controller, authentication method, nodes, and partitions. Configuration lives in source control and is deployed to nodes via Ansible (push_slurm_conf.yml), not hand-edited on each node. Once services are started, I verify that the controller sees the compute node and can schedule jobs to it. 
+        Slurm is configured via slurm.conf, which defines cluster name, controller, authentication method, nodes, and partitions. Configuration lives in source control and is deployed to nodes via Ansible (push_slurm_conf.yml), not hand-edited on each node. Once services are started, I verify that the controller sees the compute node and can schedule jobs to it.
       </p>
 
       <div class="gallery">
@@ -380,12 +287,8 @@
         </figure>
       </div>
 
-      <pre>
-        <code>
-          sinfo
-          srun hostname
-        </code>
-      </pre>
+      <pre><code>sinfo
+srun hostname</code></pre>
 
       <div class="gallery">
         <figure>
@@ -397,7 +300,7 @@
       <h2>Resource Scaling and Troubleshooting</h2>
 
       <p>
-        I increased the compute node’s CPU allocation, updated slurm.conf, and validated that Slurm could schedule multi-task jobs. During this change, after I had stepped away from the project for the night, I encountered a downed node. I was able to diagnose the issue using logs and time sync tools and found that the problem was time drift, which caused MUNGE credentials to be rejected and Slurm to mark the node unavailable. I corrected the system time, restarted services, and revalidated scheduling. 
+        I increased the compute node’s CPU allocation, updated slurm.conf, and validated that Slurm could schedule multi-task jobs. During this change, after I had stepped away from the project for the night, I encountered a downed node. I was able to diagnose the issue using logs and time sync tools and found that the problem was time drift, which caused MUNGE credentials to be rejected and Slurm to mark the node unavailable. I corrected the system time, restarted services, and revalidated scheduling.
       </p>
 
       <h3>CPU Scaling</h3>
@@ -408,7 +311,7 @@
         <li>Restart Slurm daemons</li>
       </ul>
 
-       <div class="gallery">
+      <div class="gallery">
         <figure>
           <img src="/assets/thumbs/cpuscaling.png" alt="cpuscaling" />
           <figcaption>srun -n 2 hostname output</figcaption>
@@ -418,24 +321,16 @@
       <h3>Troubleshooting: Time Drift</h3>
 
       <p>Encountering a downed node:</p>
-      <pre>
-        <code>
-          sudo journalctl -u slurmd -xe --no-pager | tail -n 40
-          timedatectl 
-          chronyc tracking
-          date
-        </code>
-      </pre>
+      <pre><code>sudo journalctl -u slurmd -xe --no-pager | tail -n 40
+timedatectl
+chronyc tracking
+date</code></pre>
 
       <p>
         Logs indicated:
       </p>
 
-      <pre>
-        <code>
-          Munge decode failed: expired credential
-        </code>
-      </pre>
+      <pre><code>Munge decode failed: expired credential</code></pre>
 
       <p>
         MUNGE credentials are time-sensitive. If node clocks drift far enough apart, credentials generated on one node can be rejected on another as “expired.”
@@ -449,44 +344,36 @@
         Re-sync time on both nodes:
       </p>
 
-      <pre>
-        <code>
-          sudo systemctl restart chronyd
-          sudo chronyc makestep
-        </code>
-      </pre>
+      <pre><code>sudo systemctl restart chronyd
+sudo chronyc makestep</code></pre>
 
       <p>Restart MUNGE:</p>
 
-      <pre>
-        <code>sudo systemctl restart munge</code>
-      </pre>
+      <pre><code>sudo systemctl restart munge</code></pre>
 
       <p>
         Restart Slurm daemons:
       </p>
 
-      <pre>
-        <code>
-          sudo systemctl restart slurmd # on compute node
-          sudo systemctl restart slurmctld # on head
-        </code>
-      </pre>
+      <pre><code>sudo systemctl restart slurmd # on compute node
+sudo systemctl restart slurmctld # on head</code></pre>
 
       <p>or use ansible playbook.</p>
 
       <h2>MPI Validation via Slurm</h2>
 
       <p>
-        In this project, I’m using MPI as a health check. Running MPI under Slurm proves that the scheduler can allocate resources and launch a parallel workload reliably. 
+        In this project, I’m using MPI as a health check. Running MPI under Slurm proves that the scheduler can allocate resources and launch a parallel workload reliably.
       </p>
 
       <h3>Automated MPI Validation Deployment via Ansible</h3>
 
-      <a href="https://github.com/teletraanx/mini-hpc/blob/main/ansible/playbooks/mpi_validation.yml">mpi_validation.yml</a>
+      <div class="link-row">
+        <a class="source-link" href="https://github.com/teletraanx/mini-hpc/blob/main/ansible/playbooks/mpi_validation.yml" target="_blank" rel="noopener">mpi_validation.yml</a>
+      </div>
 
       <p>
-        I use ansible-playbook to install OpenMPI on all nodes, compile the validation binary on the controller, distribute it to all nodes, then run it through srun. 
+        I use ansible-playbook to install OpenMPI on all nodes, compile the validation binary on the controller, distribute it to all nodes, then run it through srun.
       </p>
 
       <div class="gallery">
@@ -505,7 +392,9 @@
 
       <h3>MPI Validation Program (C++)</h3>
 
-      <a href="https://github.com/teletraanx/mini-hpc/blob/main/ansible/playbooks/files/mpi_validate.cpp">mpi_validate.cpp</a>
+      <div class="link-row">
+        <a class="source-link" href="https://github.com/teletraanx/mini-hpc/blob/main/ansible/playbooks/files/mpi_validate.cpp" target="_blank" rel="noopener">mpi_validate.cpp</a>
+      </div>
 
       <ul>
         <li>Uses MPI_Allreduce as a correctness check</li>
@@ -523,7 +412,7 @@
       <h2>Failure Injection and Recovery</h2>
 
       <p>
-        I wanted to simulate a node failure by stopping the compute daemon, observing scheduler state changes and job failure behavior, then restoring services and re-running validation. 
+        I wanted to simulate a node failure by stopping the compute daemon, observing scheduler state changes and job failure behavior, then restoring services and re-running validation.
       </p>
 
       <h3>Small Simulated Node Failure</h3>
@@ -532,21 +421,13 @@
         On compute node, stop slurmd:
       </p>
 
-      <pre>
-        <code>
-          sudo systemctl stop slurmd
-        </code>
-      </pre>
+      <pre><code>sudo systemctl stop slurmd</code></pre>
 
       <p>On head node, observe the impact:</p>
 
-      <pre>
-        <code>
-          sinfo 
-          scontrol show node cone
-          srun --chdir=/tmp -n 2 /opt/mpi/mpi-validate/mpi_validate
-        </code>
-      </pre>
+      <pre><code>sinfo
+scontrol show node cone
+srun --chdir=/tmp -n 2 /opt/mpi/mpi-validate/mpi_validate</code></pre>
 
       <div class="gallery">
         <figure>
@@ -561,15 +442,11 @@
         Bring the node back up and re-validate MPI:
       </p>
 
-      <pre>
-        <code>
-          sudo systemctl start slurmd # on cone
-          sinfo # on head
-          scontrol show node cone
+      <pre><code>sudo systemctl start slurmd # on cone
+sinfo # on head
+scontrol show node cone
 
-          srun --chdir=/tmp -n 2 /opt/mpi/mpi-validate/mpi_validate
-        </code>
-      </pre>
+srun --chdir=/tmp -n 2 /opt/mpi/mpi-validate/mpi_validate</code></pre>
 
       <div class="gallery">
         <figure>
@@ -577,15 +454,15 @@
           <figcaption>node restored</figcaption>
         </figure>
       </div>
+
+      <div class="row">
+        <a class="btn" href="https://github.com/teletraanx/mini-hpc" target="_blank" rel="noopener">
+          View Code on GitHub
+        </a>
+      </div>
+
+      <footer class="project-footer">Linux, Virtual Machines, Ansible, Slurm, MUNGE, MPI</footer>
     </section>
-
-    <div class="row">
-      <a class="btn" href="https://github.com/teletraanx/mini-hpc" target="_blank" rel="noopener">
-        View Code on GitHub
-      </a>
-    </div>
-
-    <footer>Linux, Virtual Machines, Ansible, Slurm, MUNGE, MPI</footer>
-  </div>
+  </main>
 </body>
 </html>

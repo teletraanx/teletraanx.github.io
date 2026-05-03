@@ -256,7 +256,7 @@
         display: block;
         width: 100%;
         height: auto;
-        transform: scale(0.85);
+        transform: scale(1.00); /* 0.85 */
         transform-origin: top left;
         }
 
@@ -298,5 +298,27 @@
         margin-top: 0.65rem;
       }
     }
+
+    .vid {
+        margin: 1rem 0 1.75rem;
+        overflow: hidden;
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        background: rgba(255, 255, 255, 0.025);
+        box-shadow: var(--shadow);
+        }
+
+    .yt-wrap {
+        position: relative;
+        width: 100%;
+        padding-top: 56.25%;
+        }
+
+    .yt-wrap iframe {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        }
 
     

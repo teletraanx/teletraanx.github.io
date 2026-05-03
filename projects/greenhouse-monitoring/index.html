@@ -42,7 +42,7 @@
         </figure>
       </div>
 
-      <h3>Embedded Sensor Sender</h3>
+      <h2>Embedded Sensor Sender</h2>
       <p>
         Using a Heltec WiFi LoRa 32 V3 board (containing ESP32-S3 microcontroller and LoRa radio) connected to a DHT22 temperature and humidity sensor, I built:
       </p>
@@ -61,7 +61,7 @@
         <a class="source-link" href="https://github.com/teletraanx/greenhouse-monitoring/blob/main/heltec/lora_sender.ino" target="_blank" rel="noopener">Sender Firmware: lora_sender.ino</a>
       </div>
 
-      <h3>Receiver</h3>
+      <h2>Receiver</h2>
       <p>
         A second Heltec board acts as the receiver.
       </p>
@@ -86,7 +86,7 @@
         </figure>
       </div>
 
-      <h3>3D Printing the Heltec Cases</h3>
+      <h2>3D Printing the Heltec Cases</h2>
 
       <p>
         Using simon.muzi’s (muzi.works) 3D model “H1 - Case for Heltec V3 running Meshtastic,” I printed cases for both boards, drilling a hole in the back of the case for the sender to make room for the sensor.
@@ -110,7 +110,7 @@
         </figure>
       </div>
 
-      <h3>Data Ingestion</h3>
+      <h2>Data Ingestion</h2>
 
       <p>
         On a Raspberry Pi 5, I built a Python ingestion service that:
@@ -134,7 +134,7 @@
         </figure>
       </div>
 
-      <h3>Web Dashboard</h3>
+      <h2>Web Dashboard</h2>
 
       <p>
         Using Flask and Chart.js, I built a dashboard to visualize and monitor the data.
@@ -164,7 +164,7 @@
         </figure>
       </div>
 
-      <h3>Accessing the Dashboard</h3>
+      <h2>Accessing the Dashboard</h2>
 
       <p>
         To make the dashboard accessible outside the local network, I used Tailscale Funnel to securely expose the dashboard over HTTPS, allowing remote access when off-site.
@@ -174,7 +174,7 @@
         <a class="source-link" href="https://jensfarm.catfish-tiaki.ts.net/" target="_blank" rel="noopener">See the Dashboard!</a>
       </div>
 
-      <h3>Deployment and Automation</h3>
+      <h2>Deployment and Automation</h2>
       <p>To ensure the system operates continuously, I created systemd service unit files for both the ingestion service and the dashboard, as well as running the Tailscale Funnel in the background. This allows the system to automatically start on boot, restart if a service crashes, and run without manual intervention.
       </p>
 
