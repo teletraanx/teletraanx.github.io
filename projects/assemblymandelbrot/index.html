@@ -4,85 +4,306 @@
   <meta charset="utf-8" />
   <title>Mandelbrot Renderer in x86-64 Assembly (NASM) | Abigale Tucker</title>
   <meta name="viewport" content="width=device-width,initial-scale=1" />
+
   <style>
-    :root { color-scheme: dark; }
-    body { margin:0; font:16px/1.55 system-ui, sans-serif; background:#0b0d10; color:#eaeef2; }
-    .wrap { max-width: 900px; margin: 6vh auto; padding: 0 20px; }
-    h1 { font-size: clamp(22px, 4vw, 36px); margin: 0 0 10px; }
-    h2 { font-size: 20px; margin: 28px 0 10px; }
-    h3 { font-size: 16px; margin: 18px 0 8px; opacity: .95; }
-    p  { opacity:.85; margin: 0 0 14px; }
-    ul { margin: 8px 0 16px 20px; opacity: .85; }
-    li { margin: 6px 0; }
-    .row { display:flex; gap:12px; flex-wrap:wrap; margin-top: 12px; }
+    :root {
+      color-scheme: dark;
 
-    /* Buttons */
-    .topbar { display:flex; justify-content:flex-start; padding: 16px 20px 0; }
-    .btn { display:inline-block; padding:10px 14px; border-radius:10px; background:#1a7; color:#041; text-decoration:none; font-weight:700; }
-    .btn.ghost { background:#132; color:#9fd; border: 1px solid rgba(159, 253, 221, .25); }
-    .btn.small { padding:8px 12px; font-weight:600; }
-
-    /* Content blocks */
-    .card {
-      margin-top: 18px;
-      background: rgba(255,255,255,.03);
-      border: 1px solid rgba(255,255,255,.08);
-      border-radius: 14px;
-      padding: 16px;
-      box-shadow: 0 10px 30px rgba(0,0,0,.25);
-    }
-    .callout {
-      border-left: 4px solid rgba(80, 200, 160, .9);
-      padding: 10px 12px;
-      background: rgba(80, 200, 160, .08);
-      border-radius: 10px;
-      margin: 14px 0;
+      --maxw: 940px;
+      --bg: #0b0c10;
+      --surface: #11131a;
+      --surface-2: #171a23;
+      --text: #f2efe9;
+      --muted: #aaa39a;
+      --border: rgba(242, 239, 233, 0.12);
+      --accent: #c9a66b;
+      --accent-soft: rgba(201, 166, 107, 0.14);
+      --code-bg: #08090d;
+      --shadow: 0 18px 45px rgba(0, 0, 0, 0.35);
+      --radius: 18px;
     }
 
-    /* Code blocks */
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      font: 16px/1.65 Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(201, 166, 107, 0.11), transparent 34rem),
+        linear-gradient(180deg, #0b0c10 0%, #090a0d 100%);
+    }
+
+    a {
+      color: var(--accent);
+      text-decoration-thickness: 1px;
+      text-underline-offset: 3px;
+    }
+
+    a:hover {
+      color: var(--text);
+    }
+
+    .topbar {
+      max-width: var(--maxw);
+      margin: 0 auto;
+      padding: 1.25rem 1.25rem 0;
+    }
+
+    .wrap {
+      max-width: var(--maxw);
+      margin: 0 auto;
+      padding: 2rem 1.25rem 3rem;
+    }
+
+    .back-link,
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: fit-content;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      color: var(--text);
+      background: rgba(255, 255, 255, 0.04);
+      text-decoration: none;
+      font-weight: 700;
+      transition: transform 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+    }
+
+    .back-link {
+      padding: 0.5rem 0.75rem;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    .btn {
+      padding: 0.7rem 1rem;
+      background: var(--accent-soft);
+      border-color: rgba(201, 166, 107, 0.38);
+    }
+
+    .back-link:hover,
+    .btn:hover {
+      transform: translateY(-2px);
+      border-color: rgba(201, 166, 107, 0.5);
+      background: rgba(201, 166, 107, 0.16);
+      color: var(--text);
+    }
+
+    .project-hero {
+      margin: 2rem 0 1.5rem;
+      padding-bottom: 1.5rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .eyebrow {
+      margin: 0 0 0.5rem;
+      color: var(--accent);
+      font-size: 0.78rem;
+      font-weight: 800;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      margin: 0;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: clamp(2.15rem, 5vw, 4rem);
+      line-height: 1;
+      letter-spacing: -0.045em;
+    }
+
+    .summary {
+      max-width: 760px;
+      margin: 1rem 0 0;
+      color: var(--muted);
+      font-size: 1.05rem;
+    }
+
+    h2 {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin: 2.25rem 0 0.9rem;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: clamp(1.45rem, 3vw, 2rem);
+      line-height: 1.15;
+      letter-spacing: -0.03em;
+    }
+
+    h2::after {
+      content: "";
+      height: 1px;
+      flex: 1;
+      background: linear-gradient(90deg, var(--border), transparent);
+    }
+
+    h3 {
+      margin: 1.25rem 0 0.5rem;
+      font-size: 1rem;
+      color: var(--text);
+    }
+
+    p {
+      margin: 0 0 1rem;
+      color: var(--muted);
+    }
+
+    ul {
+      margin: 0.5rem 0 1.2rem 1.25rem;
+      padding: 0;
+      color: var(--muted);
+    }
+
+    li {
+      margin: 0.35rem 0;
+    }
+
+    code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      font-size: 0.92em;
+      color: #efe0bd;
+    }
+
+    p code,
+    li code {
+      padding: 0.1rem 0.32rem;
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      background: rgba(255, 255, 255, 0.04);
+    }
+
     pre {
-      margin: 10px 0 16px;
-      padding: 12px 14px;
-      border-radius: 12px;
+      margin: 0.9rem 0 1.25rem;
+      padding: 1rem;
       overflow: auto;
-      background: #0f1319;
-      border: 1px solid rgba(255,255,255,.08);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      background: var(--code-bg);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
     }
-    code { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace; font-size: 14px; }
 
-    /* Images */
+    pre code {
+      display: block;
+      white-space: pre;
+      color: #ded8cb;
+      font-size: 0.9rem;
+      line-height: 1.55;
+    }
+
+    .card {
+      margin-top: 1.5rem;
+      padding: 1.25rem;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.035), transparent),
+        var(--surface);
+      box-shadow: var(--shadow);
+    }
+
+    .link-row,
+    .row {
+      display: flex;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+      margin: 1rem 0 1.25rem;
+    }
+
+    .source-link {
+      display: inline-flex;
+      width: fit-content;
+      padding: 0.45rem 0.7rem;
+      border: 1px solid rgba(201, 166, 107, 0.32);
+      border-radius: 999px;
+      background: var(--accent-soft);
+      color: var(--text);
+      font-size: 0.9rem;
+      font-weight: 700;
+      text-decoration: none;
+    }
+
+    .source-link:hover {
+      background: rgba(201, 166, 107, 0.2);
+    }
+
     .gallery {
       display: grid;
-      grid-template-columns: 1fr;
-      gap: 16px;
-      margin-top: 12px;
+      gap: 1rem;
+      margin: 1rem 0 1.75rem;
     }
+
     figure {
       margin: 0;
-      background: rgba(255,255,255,.02);
-      border: 1px solid rgba(255,255,255,.08);
-      border-radius: 12px;
       overflow: hidden;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.025);
     }
-    figure img { width: 100%; height: auto; display:block; image-rendering: auto;}
-    figcaption { padding: 10px 12px; font-size: 14px; opacity: .75; }
-    @media (max-width: 720px) { .gallery { grid-template-columns: 1fr; } }
 
-    footer { opacity:.6; font-size:14px; margin-top:18px; }
+    figure img {
+      display: block;
+      width: 100%;
+      height: auto;
+    }
+
+    figcaption {
+      padding: 0.75rem 0.9rem;
+      color: var(--muted);
+      font-size: 0.92rem;
+      border-top: 1px solid var(--border);
+    }
+
+    .project-footer {
+      margin-top: 1.75rem;
+      padding-top: 1rem;
+      border-top: 1px solid var(--border);
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    @media (max-width: 640px) {
+      .wrap {
+        padding-top: 1.25rem;
+      }
+
+      .card {
+        padding: 1rem;
+      }
+
+      h2 {
+        align-items: flex-start;
+      }
+
+      h2::after {
+        margin-top: 0.65rem;
+      }
+    }
   </style>
 </head>
+
 <body>
   <div class="topbar">
-    <a class="btn ghost small" href="https://teletraanx.github.io/">← Back to Home</a>
+    <a class="back-link" href="https://teletraanx.github.io/">← Back to Home</a>
   </div>
 
-  <div class="wrap">
-    <h1>Mandelbrot Renderer in x86-64 Assembly (NASM)</h1>
-    <p>In this project, I wrote a Mandelbrot set renderer in assembly to generate a greyscale image by mapping pixel coordinates to complex numbers and iteratively applying the function: <code>z=z^2+c</code></p>
+  <main class="wrap">
+    <header class="project-hero">
+      <p class="eyebrow">Assembly Project</p>
+      <h1>Mandelbrot Renderer in x86-64 Assembly (NASM)</h1>
+      <p class="summary">In this project, I wrote a Mandelbrot set renderer in assembly to generate a greyscale image by mapping pixel coordinates to complex numbers and iteratively applying the function: <code>z=z^2+c</code></p>
+    </header>
 
     <section class="card">
       <h2>Key Concepts:</h2>
-    
+
       <ul>
         <li>x86-64 Assembly (NASM) programming</li>
         <li>System V AMD64 ABI compliance</li>
@@ -93,7 +314,7 @@
 
       <h2>Argument Parsing and File Output</h2>
       <p>
-        To begin, my goal was to simply accept command-line arguments and generate a valid image file. 
+        To begin, my goal was to simply accept command-line arguments and generate a valid image file.
       </p>
       <p>I wanted my program to take three command-line arguments: <code>./mandelbrot image_size iterations output_file</code></p>
       <ul>
@@ -104,105 +325,77 @@
 
       <p>I used functions from the C standard library to handle parsing and file I/O:</p>
       <p><code>atoi</code> to convert command-line strings into integers:</p>
-      <pre>
-        <code>
-          …
-          ; size = atoi(argv[1])
-          mov rdi, [rbx + 8]    ; argv[1]
-          call atoi    ; convert image size ascii to int in eax
-          mov r12d, eax    ; IMAGE SIZE = r12d (using rXd registers for lower 32 bits)
-          …
-          ; iterations = atoi(argv[2])
-          mov rdi, [rbx + 16]    ; argv[2]
-          call atoi    ; iterations ascii to int in eax
-          …
-        </code>
-      </pre>
+      <pre><code>…
+; size = atoi(argv[1])
+mov rdi, [rbx + 8]    ; argv[1]
+call atoi    ; convert image size ascii to int in eax
+mov r12d, eax    ; IMAGE SIZE = r12d (using rXd registers for lower 32 bits)
+…
+; iterations = atoi(argv[2])
+mov rdi, [rbx + 16]    ; argv[2]
+call atoi    ; iterations ascii to int in eax
+…</code></pre>
 
       <p><code>fopen</code> to open the output file in binary mode:</p>
-      <pre>
-        <code>
-          …
-          ; FILE* fp = fopen(path, "wb")
-          mov rdi, r14    ; filename
-          mov rsi, write_mode    ; mode: write binary
-          call fopen    ; FILE* = rax
-          …
-        </code>
-      </pre>
+      <pre><code>…
+; FILE* fp = fopen(path, "wb")
+mov rdi, r14    ; filename
+mov rsi, write_mode    ; mode: write binary
+call fopen    ; FILE* = rax
+…</code></pre>
 
       <p>The image is written using the binary PGM format, which has this structure:</p>
-      <pre>
-        <code>
-          P5
-          width height
-          255
-          raw pixel bytes
-        </code>
-      </pre>
+      <pre><code>P5
+width height
+255
+raw pixel bytes</code></pre>
 
       <p><code>fprintf</code> to write the PGM header:</p>
-      <pre>
-        <code>
-          …
-          mov r15, rax    ; FILE* = r15
+      <pre><code>…
+mov r15, rax    ; FILE* = r15
 
-          ; fprintf(fp, header_fmt, size, size)
-          mov rdi, r15    ; FILE*
-          mov rsi, header_fmt    ; format 
-          mov edx, r12d    ; first %d width
-          mov ecx, r12d    ; second %d height
-          mov eax, 0    ; for variadic functions, I'm passing no vector registers 
-          call fprintf
-          …
-        </code>
-      </pre>
+; fprintf(fp, header_fmt, size, size)
+mov rdi, r15    ; FILE*
+mov rsi, header_fmt    ; format
+mov edx, r12d    ; first %d width
+mov ecx, r12d    ; second %d height
+mov eax, 0    ; for variadic functions, I'm passing no vector registers
+call fprintf
+…</code></pre>
 
       <p>To generate the image, I used nested loops over rows and columns, assigning every pixel a constant grayscale value of 128.</p>
       <p><code>fputc</code> to write pixel data:</p>
-      <pre>
-        <code>
-          …
-          ; fputc(128, fp) (take int and write as byte)
-            mov edi, 128    ; character (int)
-            mov rsi, r15    ; FILE*
-            call fputc
-          …
-        </code>
-      </pre>
+      <pre><code>…
+; fputc(128, fp) (take int and write as byte)
+  mov edi, 128    ; character (int)
+  mov rsi, r15    ; FILE*
+  call fputc
+…</code></pre>
 
       <p><code>fclose</code> to properly close the file:</p>
-      <pre>
-        <code>
-          …
-          mov rdi, r15    ; FILE*
-          call fclose
-          …
-        </code>
-      </pre>
+      <pre><code>…
+mov rdi, r15    ; FILE*
+call fclose
+…</code></pre>
 
       <p>To use these functions, it was important to comply to ABI calling conventions, so I passed arguments in the appropriate registers (<code>rdi, rsi, rdx</code>, etc.) and preserved callee-saved registers (<code>rbx, r12-15</code>) across function calls.</p>
-      <pre>
-        <code>
-          …
-              ; preserving callee-saved registers
-              ; will be using r12-r15 because they survive function calls 
-              push rbx
-              push r12
-              push r13
-              push r14
-              push r15
-          …
-          .clean:
-              pop r15
-              pop r14
-              pop r13
-              pop r12
-            pop rbx 
+      <pre><code>…
+    ; preserving callee-saved registers
+    ; will be using r12-r15 because they survive function calls
+    push rbx
+    push r12
+    push r13
+    push r14
+    push r15
+…
+.clean:
+    pop r15
+    pop r14
+    pop r13
+    pop r12
+  pop rbx
 
-            ret
-        </code>
-      </pre>
+  ret</code></pre>
 
       <p>At this point, I could take command-line arguments and produce a uniform gray image to prove that:</p>
       <ul>
@@ -212,7 +405,10 @@
       </ul>
       <p>Now, I could focus on rendering logic without worrying about input parsing or file output issues.</p>
 
-      <a href="https://github.com/teletraanx/assembly-mandelbrot/blob/main/uniformgrey.asm">Argument Parsing and File Output: uniformgrey.asm</a>
+      <div class="link-row">
+        <a class="source-link" href="https://github.com/teletraanx/assembly-mandelbrot/blob/main/uniformgrey.asm" target="_blank" rel="noopener">Argument Parsing and File Output: uniformgrey.asm</a>
+      </div>
+
       <div class="gallery">
         <figure>
           <img src="/assets/thumbs/assemblymandelbrot/grey.png" alt="uniformgrey" />
@@ -229,31 +425,30 @@
       </ul>
 
       <p>Rather than writing a constant value (128) for every pixel, I computed a grayscale value based on the current row and column, then wrote the result to the image.</p>
-      <pre>
-        <code>
-          …
-          ; color = (row + col) % 256
-          mov eax, ebx        ; eax = row
-          add eax, r13d       ; eax = row + col
-          and eax, 255        ; keep only 0-255
+      <pre><code>…
+; color = (row + col) % 256
+mov eax, ebx        ; eax = row
+add eax, r13d       ; eax = row + col
+and eax, 255        ; keep only 0-255
 
-          ; fputc(color, fp)
-          mov edi, eax
-          mov rsi, r15
-          call fputc
-          …
-        </code>
-      </pre>
+; fputc(color, fp)
+mov edi, eax
+mov rsi, r15
+call fputc
+…</code></pre>
 
       <p><code>row + col</code> produces an increasing value across the image, and <code>and eax, 255</code> keeps the value within grayscale bounds. This should result in a diagonal gradient across the image.</p>
-      
-      <a href="https://github.com/teletraanx/assembly-mandelbrot/blob/main/diagonalgradient.asm">Pixel Traversal and Gradient Testing: diagonalgradient.asm</a>
+
+      <div class="link-row">
+        <a class="source-link" href="https://github.com/teletraanx/assembly-mandelbrot/blob/main/diagonalgradient.asm" target="_blank" rel="noopener">Pixel Traversal and Gradient Testing: diagonalgradient.asm</a>
+      </div>
+
       <div class="gallery">
         <figure>
           <img src="/assets/thumbs/assemblymandelbrot/gradient.png" alt="gradient" />
           <figcaption>Diagonal Gradient PGM Image</figcaption>
         </figure>
-      </div>      
+      </div>
 
       <h2>Floating-Point Coordinate Mapping</h2>
       <p>My next goal was to convert each pixel’s (<code>row, col</code>) position into a corresponding point in the complex plane because the Mandelbrot set operates on complex numbers, not pixel indices.</p>
@@ -280,62 +475,54 @@
       </ul>
 
       <p>Then, I computed the mapped value:</p>
-      <pre>
-        <code>
-          …
-          ; xmm0 = real_max - real_min
-          movsd xmm0, [real_max]
-          subsd xmm0, [real_min]
+      <pre><code>…
+; xmm0 = real_max - real_min
+movsd xmm0, [real_max]
+subsd xmm0, [real_min]
 
-          ; xmm1 = col as double
-          cvtsi2sd xmm1, r13d
+; xmm1 = col as double
+cvtsi2sd xmm1, r13d
 
-          ; xmm0 = col * (real_max - real_min)
-          mulsd xmm0, xmm1
+; xmm0 = col * (real_max - real_min)
+mulsd xmm0, xmm1
 
-          ; xmm2 = size - 1 as double
-          mov eax, r12d
-          dec eax
-          cvtsi2sd xmm2, eax
+; xmm2 = size - 1 as double
+mov eax, r12d
+dec eax
+cvtsi2sd xmm2, eax
 
-          ; xmm0 = col * range / (size - 1)
-          divsd xmm0, xmm2
+; xmm0 = col * range / (size - 1)
+divsd xmm0, xmm2
 
-          ; xmm0 = real_min + ...
-          addsd xmm0, [real_min]
-        </code>
-      </pre>
+; xmm0 = real_min + ...
+addsd xmm0, [real_min]</code></pre>
 
       <p>At this point, <code>xmm0</code> contains the real coordinate <code>cr</code> in the range [-1, 1].</p>
       <p>Before implementing the Mandelbrot algorithm, I used this mapped value to generate a horizontal gradient to verify that the mapping was correct.</p>
       <p>To convert from the range [-1, 1] to [0, 255], I applied: <code>color = (cr + 1.0) * 127.5</code></p>
-      <pre>
-        <code>
-          ; shift from [-1, 1] to [0, 2]
-          addsd xmm0, [real_max]
+      <pre><code>; shift from [-1, 1] to [0, 2]
+addsd xmm0, [real_max]
 
-          ; scale to [0, 255]
-          mulsd xmm0, [gray_scale]
+; scale to [0, 255]
+mulsd xmm0, [gray_scale]
 
-          ; convert double to integer
-          cvttsd2si eax, xmm0
-        </code>
-      </pre>
+; convert double to integer
+cvttsd2si eax, xmm0</code></pre>
+
       <p>Writing the pixel:</p>
-      <pre>
-        <code>
-          ; fputc(color, fp)
-          mov edi, eax
-          mov rsi, r15
-          call fputc
-          …
-        </code>
-      </pre>
+      <pre><code>; fputc(color, fp)
+mov edi, eax
+mov rsi, r15
+call fputc
+…</code></pre>
+
       <p>
-        Now, I was able to confirm that integer pixel coordinates were correctly mapped into double-precision floating-point values and that floating-point instructions (<code>cvtsi2sd, mulsd, divsd, addsd</code>) were working correctly, which is important because the Mandelbrot algorithm will depend entirely on accurate mapping from pixels to complex numbers. 
+        Now, I was able to confirm that integer pixel coordinates were correctly mapped into double-precision floating-point values and that floating-point instructions (<code>cvtsi2sd, mulsd, divsd, addsd</code>) were working correctly, which is important because the Mandelbrot algorithm will depend entirely on accurate mapping from pixels to complex numbers.
       </p>
 
-      <a href="https://github.com/teletraanx/assembly-mandelbrot/blob/main/floatingpointgradient.asm">Floating-Point Coordinate Mapping: floatingpointgradient.asm</a>
+      <div class="link-row">
+        <a class="source-link" href="https://github.com/teletraanx/assembly-mandelbrot/blob/main/floatingpointgradient.asm" target="_blank" rel="noopener">Floating-Point Coordinate Mapping: floatingpointgradient.asm</a>
+      </div>
 
       <div class="gallery">
         <figure>
@@ -345,7 +532,7 @@
       </div>
 
       <h2>Mandelbrot Iteration</h2>
-    
+
       <p>My final goal was to implement the Mandelbrot iteration itself and determine how each pixel should be colored. </p>
       <p>For each pixel, I now have a corresponding complex number: <code>c = cr + ci*i</code></p>
       <p>The Mandelbrot set is defined by repeatedly applying <code>z = z^2 + c</code> starting from <code>z = 0</code>.</p>
@@ -360,69 +547,56 @@
         <li><code>zi_next = 2*zr*zi + ci</code></li>
       </ul>
       <p>Inside the loop: </p>
-      <pre>
-        <code>
-          …
-          ; zr_next = zr*zr - zi*zi + cr
-          movsd xmm4, xmm2    ; xmm4 = zr
-          mulsd xmm4, xmm2    ; xmm4 = zr*zr
+      <pre><code>…
+; zr_next = zr*zr - zi*zi + cr
+movsd xmm4, xmm2    ; xmm4 = zr
+mulsd xmm4, xmm2    ; xmm4 = zr*zr
 
-          movsd xmm5, xmm3
-          mulsd xmm5, xmm3    ; xmm5 = zi*zi
+movsd xmm5, xmm3
+mulsd xmm5, xmm3    ; xmm5 = zi*zi
 
-          subsd xmm4, xmm5    ; xmm4 = zr*zr - zi*zi
-          addsd xmm4, xmm6    ; xmm4 = zr_next = + cr
+subsd xmm4, xmm5    ; xmm4 = zr*zr - zi*zi
+addsd xmm4, xmm6    ; xmm4 = zr_next = + cr
 
-          ; zi_next = 2*zr*zi + ci
-          movsd xmm5, xmm2
-          mulsd xmm5, xmm3    ; xmm5 = zr*zi
-          mulsd xmm5, [two]    ; *2
-          addsd xmm5, xmm7    ; xmm5 = zi_next = +ci
-        </code>
-      </pre>
+; zi_next = 2*zr*zi + ci
+movsd xmm5, xmm2
+mulsd xmm5, xmm3    ; xmm5 = zr*zi
+mulsd xmm5, [two]    ; *2
+addsd xmm5, xmm7    ; xmm5 = zi_next = +ci</code></pre>
+
       <p>The updated values are stored back into zr and zi for the next iteration.</p>
-      <pre>
-        <code>
-          ; updating with new values
-          movsd xmm2, xmm4    ; xmm2 = new zr 
-          movsd xmm3, xmm5    ; xmm3 = new zi
-          …
-        </code>
-      </pre>
+      <pre><code>; updating with new values
+movsd xmm2, xmm4    ; xmm2 = new zr
+movsd xmm3, xmm5    ; xmm3 = new zi
+…</code></pre>
 
       <p>To determine whether a point diverges, I used the Mandelbrot escape condition: <code>|z| > 2</code>. Instead of computing a square root (which is expensive), I used the equivalent comparison: <code>zr*zr + zi*zi > 4</code></p>
-      <pre>
-        <code>
-          …
-              ; escape check
-              ; if zr*zr + zi*zi > 4.0, escaped
-              movsd xmm0, xmm2    ; xmm0 = zr
-              mulsd xmm0, xmm2    ; zr*zr
+      <pre><code>…
+    ; escape check
+    ; if zr*zr + zi*zi > 4.0, escaped
+    movsd xmm0, xmm2    ; xmm0 = zr
+    mulsd xmm0, xmm2    ; zr*zr
 
-              movsd xmm1, xmm3
-              mulsd xmm1, xmm3    ; zi*zi
+    movsd xmm1, xmm3
+    mulsd xmm1, xmm3    ; zi*zi
 
-              addsd xmm0, xmm1    ; xmm0 = zr*zr + zi*zi
+    addsd xmm0, xmm1    ; xmm0 = zr*zr + zi*zi
 
-              comisd xmm0, [escape4]    ; compare mag squared to 4.0
-              ja .escaped    ; if above, it escaped
-          …
-        </code>
-      </pre>
+    comisd xmm0, [escape4]    ; compare mag squared to 4.0
+    ja .escaped    ; if above, it escaped
+…</code></pre>
+
       <p>Coloring the pixels: </p>
-      <pre>
-        <code>
-          …
-          .not_escaped:
-              ; if this label is reached, point never escaped during iterations
-              mov eax, 0    ; black
-              jmp .write_pixel
+      <pre><code>…
+.not_escaped:
+    ; if this label is reached, point never escaped during iterations
+    mov eax, 0    ; black
+    jmp .write_pixel
 
-          .escaped:
-              mov eax, 255    ; white
-          …
-        </code>
-      </pre>
+.escaped:
+    mov eax, 255    ; white
+…</code></pre>
+
       <p>So, for each pixel: </p>
       <ul>
         <li>initialize <code>z = 0</code></li>
@@ -430,16 +604,15 @@
         <li>stop early if escape condition is met</li>
         <li>assign a color based on the result </li>
       </ul>
-      
-      <a href="https://github.com/teletraanx/assembly-mandelbrot/blob/main/mandelbrot.asm">Mandelbrot Iteration: mandelbrot.asm</a>
-      <pre>
-        <code>
-          nasm -felf64 mandelbrot.asm -o mandelbrot.o
-          gcc -no-pie -znoexecstack mandelbrot.o -o mandelbrot
-          ./mandelbrot 512 100 mandel.pgm
-        </code>
-      </pre>
-      
+
+      <div class="link-row">
+        <a class="source-link" href="https://github.com/teletraanx/assembly-mandelbrot/blob/main/mandelbrot.asm" target="_blank" rel="noopener">Mandelbrot Iteration: mandelbrot.asm</a>
+      </div>
+
+      <pre><code>nasm -felf64 mandelbrot.asm -o mandelbrot.o
+gcc -no-pie -znoexecstack mandelbrot.o -o mandelbrot
+./mandelbrot 512 100 mandel.pgm</code></pre>
+
       <div class="gallery">
         <figure>
           <img src="/assets/thumbs/assemblymandelbrot/mandelbrot.png" alt="mandelbrot" />
@@ -447,13 +620,14 @@
         </figure>
       </div>
 
-    <div class="row">
-      <a class="btn" href="https://github.com/teletraanx/assembly-mandelbrot/tree/main" target="_blank" rel="noopener">
-        View Code on GitHub
-      </a>
-    </div>
+      <div class="row">
+        <a class="btn" href="https://github.com/teletraanx/assembly-mandelbrot/tree/main" target="_blank" rel="noopener">
+          View Code on GitHub
+        </a>
+      </div>
 
-    <footer>Assembly, C</footer>
-  </div>
+      <footer class="project-footer">Assembly, C</footer>
+    </section>
+  </main>
 </body>
 </html>
