@@ -3,105 +3,157 @@
 <head>
   <meta charset="utf-8" />
   <title>Abigale Tucker</title>
-  <link rel="icon" type="image/x-icon" href="assets/thumbs/fern.PNG"> <!--favicon-->
+  <link rel="icon" type="image/x-icon" href="assets/thumbs/fern.PNG">
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <meta name="description" content="Projects by Abigale Tucker." />
   <link rel="preload" href="assets/site.css" as="style" />
   <link rel="stylesheet" href="assets/site.css" />
 </head>
+
 <body>
   <header class="header wrap">
-    <h1 class="title">Abigale Tucker</h1>
-    <p class="lede">abigaletucker0104@gmail.com.</p>
-    <nav class="nav">
+    <div>
+      <p class="eyebrow">Portfolio</p>
+      <h1 class="title">Abigale Tucker</h1>
+      <p class="lede">Systems, low-level programming, HPC, embedded systems, simulation, and visualization.</p>
+    </div>
+
+    <nav class="nav" aria-label="Main navigation">
       <a href="./">Home</a>
-      <!--<a href="mailto:you@email.com">Contact</a>-->
+      <a href="mailto:abigaletucker0104@gmail.com">Email</a>
       <a href="https://github.com/teletraanx" data-external>GitHub</a>
       <a href="https://www.linkedin.com/in/abigale-tucker-b20471198/" data-external>LinkedIn</a>
     </nav>
   </header>
 
-  <main class="wrap grid">
-      <a class="card" href="projects/assemblymandelbrot/">
-          <figure class="thumb"><img src="assets/thumbs/assemblymandelbrot/mandelbrot.png" alt="Screenshot of assemblymandelbrot" loading="lazy" /></figure>
-          <h2 class="card-title">Mandelbrot Renderer in x86-64 Assembly (NASM)</h2>
-          <p class="card-desc">A Mandelbrot set renderer written in Assembly (NASM) and C standard library functions.</p>
-          <span class="pill">Assembly</span>
-      </a>
+  <div class="page wrap">
+    <aside class="toc" aria-label="Project categories">
+      <p class="toc-title">Projects</p>
+      <a href="#assembly">Assembly</a>
+      <a href="#embedded">Embedded</a>
+      <a href="#hpc">HPC</a>
+      <a href="#modeling">Modeling & Simulation</a>
+      <a href="#data-visualization">Data Visualization</a>
+    </aside>
 
-      <a class="card" href="projects/greenhouse-monitoring/">
-          <figure class="thumb"><img src="assets/thumbs/greenhouse-monitoring/greenhouse-monitoring2.png" alt="Screenshot of greenhouse-monitoring" loading="lazy" /></figure>
-          <h2 class="card-title">LoRa Greenhouse Monitoring System</h2>
-          <p class="card-desc">Designed and deployed an IoT monitoring system to collect, transmit, store, and visualize environmental data from a remote greenhouse using long-range, low-power wireless communication.</p>
-          <span class="pill">Embedded</span>
-      </a>
+    <main class="content">
+      <section id="assembly" class="project-section">
+        <h2 class="section-title">Assembly</h2>
 
-      <a class="card" href="projects/mini-hpc/">
-          <figure class="thumb"><img src="assets/thumbs/slurminstall.png" alt="Screenshot of mini-hpc" loading="lazy" /></figure>
-          <h2 class="card-title">Linux HPC Cluster: Slurm, Ansible Automation, and MPI Operations</h2>
-          <p class="card-desc">Designed and automated a small-scale Linux HPC cluster to simulate real production operations, including Slurm scheduling, Ansible-driven configuration management, MPI workload validation, and failure recovery.</p>
-          <span class="pill">High-Performance Computing</span>
-      </a>
-    
-      <a class="card" href="projects/mpi-fundamentals/">
-          <figure class="thumb"><img src="assets/thumbs/matmuloutput.png" alt="Screenshot of mpi-fundamentals" loading="lazy" /></figure>
-          <h2 class="card-title">Distributed-Memory Parallel Programming with MPI (C++)</h2>
-          <p class="card-desc">Implemented MPI-based parallel programs in C++ demonstrating distributed computation, collective communication, and basic performance scaling.</p>
-          <span class="pill">High-Performance Computing</span>
-      </a>
-    
-      <a class="card" href="projects/ActiveSonar/">
-          <figure class="thumb"><img src="assets/thumbs/activesonar.PNG" alt="Screenshot of Active Sonar Simulation" loading="lazy" /></figure>
-          <h2 class="card-title">Active Sonar Simulation</h2>
-          <p class="card-desc">Unity simulation of active searchlight sonar.</p>
-          <span class="pill">Modeling & Simulation</span>
-      </a>
+        <div class="grid">
+          <a class="card" href="projects/assemblymandelbrot/">
+            <figure class="thumb">
+              <img src="assets/thumbs/assemblymandelbrot/mandelbrot.png" alt="Screenshot of Mandelbrot renderer" loading="lazy" />
+            </figure>
+            <h3 class="card-title">Mandelbrot Renderer in x86-64 Assembly (NASM)</h3>
+            <p class="card-desc">A Mandelbrot set renderer written in Assembly (NASM) and C standard library functions.</p>
+            <span class="pill" data-tag="assembly">Assembly</span>
+          </a>
+        </div>
+      </section>
 
-      <a class="card" href="projects/AntPheromoneSimulator/">
-          <figure class="thumb"><img src="assets/thumbs/antsim.PNG" alt="Screenshot of Ant Pheromone Simulator" loading="lazy" /></figure>
-          <h2 class="card-title">Ant Pheromone Simulator</h2>
-          <p class="card-desc">Unity simulation of ant foraging and pheromones.</p>
-          <span class="pill">Modeling & Simulation</span>
-      </a>
+      <section id="embedded" class="project-section">
+        <h2 class="section-title">Embedded Systems</h2>
 
-      <a class="card" href="projects/LotkaVolterraModel/">
-          <figure class="thumb"><img src="assets/thumbs/lvmodel.PNG" alt="Screenshot of Lotka-Volterra model" loading="lazy" /></figure>
-          <h2 class="card-title">Lotka-Volterra Simulation</h2>
-          <p class="card-desc">Unity simulation of the Lotka-Volterra predator-prey model.</p>
-          <span class="pill">Modeling & Simulation</span>
-      </a>
-      <!-- Project card: Barnsley Fern -->
-      <a class="card" href="projects/IndiaRainfallMap/">
-          <figure class="thumb"><img src="assets/thumbs/rainfallmap.PNG" alt="Screenshot of India Rainfall Map visualization" loading="lazy" /></figure>
-          <h2 class="card-title">India's Monthly Rainfall</h2>
-          <p class="card-desc">Three.js visualization showing how rainfall has varied across India's subdivisions from 1901-2017.</p>
-          <span class="pill">Data Visualization</span>
-      </a>
-    
-      <a class="card" href="projects/RainfallBarnsleyFern/">
-          <figure class="thumb">
-              <img src="assets/thumbs/fern.PNG" alt="Screenshot of the India Rainfall Barnsley Fern visualization" loading="lazy" />
-          </figure>
-          <h2 class="card-title">India Rainfall | Barnsley Fern</h2>
-          <p class="card-desc">Three.js fern where color & density respond to rainfall data.</p>
-          <span class="pill">Data Visualization</span>
-      </a>
-      <!-- Duplicate this block for more projects -->
-      <!--
-    <a class="card" href="projects/another/">
-      <figure class="thumb"><img src="assets/thumbs/another.png" alt="Preview of Another Project" loading="lazy" /></figure>
-      <h2 class="card-title">Another Project</h2>
-      <p class="card-desc">One-sentence description.</p>
-      <span class="pill">Demo</span>
-    </a>
-    -->
-  </main>
+        <div class="grid">
+          <a class="card" href="projects/greenhouse-monitoring/">
+            <figure class="thumb">
+              <img src="assets/thumbs/greenhouse-monitoring/greenhouse-monitoring2.png" alt="Screenshot of greenhouse monitoring system" loading="lazy" />
+            </figure>
+            <h3 class="card-title">LoRa Greenhouse Monitoring System</h3>
+            <p class="card-desc">Designed and deployed an IoT monitoring system to collect, transmit, store, and visualize environmental data from a remote greenhouse using long-range, low-power wireless communication.</p>
+            <span class="pill" data-tag="embedded">Embedded</span>
+          </a>
+        </div>
+      </section>
+
+      <section id="hpc" class="project-section">
+        <h2 class="section-title">High-Performance Computing</h2>
+
+        <div class="grid">
+          <a class="card" href="projects/mini-hpc/">
+            <figure class="thumb">
+              <img src="assets/thumbs/slurminstall.png" alt="Screenshot of mini HPC cluster" loading="lazy" />
+            </figure>
+            <h3 class="card-title">Linux HPC Cluster: Slurm, Ansible Automation, and MPI Operations</h3>
+            <p class="card-desc">Designed and automated a small-scale Linux HPC cluster to simulate real production operations, including Slurm scheduling, Ansible-driven configuration management, MPI workload validation, and failure recovery.</p>
+            <span class="pill" data-tag="hpc">High-Performance Computing</span>
+          </a>
+
+          <a class="card" href="projects/mpi-fundamentals/">
+            <figure class="thumb">
+              <img src="assets/thumbs/matmuloutput.png" alt="Screenshot of MPI matrix multiplication output" loading="lazy" />
+            </figure>
+            <h3 class="card-title">Distributed-Memory Parallel Programming with MPI (C++)</h3>
+            <p class="card-desc">Implemented MPI-based parallel programs in C++ demonstrating distributed computation, collective communication, and basic performance scaling.</p>
+            <span class="pill" data-tag="hpc">High-Performance Computing</span>
+          </a>
+        </div>
+      </section>
+
+      <section id="modeling" class="project-section">
+        <h2 class="section-title">Modeling & Simulation</h2>
+
+        <div class="grid">
+          <a class="card" href="projects/ActiveSonar/">
+            <figure class="thumb">
+              <img src="assets/thumbs/activesonar.PNG" alt="Screenshot of active sonar simulation" loading="lazy" />
+            </figure>
+            <h3 class="card-title">Active Sonar Simulation</h3>
+            <p class="card-desc">Unity simulation of active searchlight sonar.</p>
+            <span class="pill" data-tag="modeling">Modeling & Simulation</span>
+          </a>
+
+          <a class="card" href="projects/AntPheromoneSimulator/">
+            <figure class="thumb">
+              <img src="assets/thumbs/antsim.PNG" alt="Screenshot of ant pheromone simulator" loading="lazy" />
+            </figure>
+            <h3 class="card-title">Ant Pheromone Simulator</h3>
+            <p class="card-desc">Unity simulation of ant foraging and pheromones.</p>
+            <span class="pill" data-tag="modeling">Modeling & Simulation</span>
+          </a>
+
+          <a class="card" href="projects/LotkaVolterraModel/">
+            <figure class="thumb">
+              <img src="assets/thumbs/lvmodel.PNG" alt="Screenshot of Lotka-Volterra simulation" loading="lazy" />
+            </figure>
+            <h3 class="card-title">Lotka-Volterra Simulation</h3>
+            <p class="card-desc">Unity simulation of the Lotka-Volterra predator-prey model.</p>
+            <span class="pill" data-tag="modeling">Modeling & Simulation</span>
+          </a>
+        </div>
+      </section>
+
+      <section id="data-visualization" class="project-section">
+        <h2 class="section-title">Data Visualization</h2>
+
+        <div class="grid">
+          <a class="card" href="projects/IndiaRainfallMap/">
+            <figure class="thumb">
+              <img src="assets/thumbs/rainfallmap.PNG" alt="Screenshot of India rainfall map visualization" loading="lazy" />
+            </figure>
+            <h3 class="card-title">India's Monthly Rainfall</h3>
+            <p class="card-desc">Three.js visualization showing how rainfall has varied across India's subdivisions from 1901-2017.</p>
+            <span class="pill" data-tag="data">Data Visualization</span>
+          </a>
+
+          <a class="card" href="projects/RainfallBarnsleyFern/">
+            <figure class="thumb">
+              <img src="assets/thumbs/fern.PNG" alt="Screenshot of India rainfall Barnsley Fern visualization" loading="lazy" />
+            </figure>
+            <h3 class="card-title">India Rainfall | Barnsley Fern</h3>
+            <p class="card-desc">Three.js fern where color and density respond to rainfall data.</p>
+            <span class="pill" data-tag="data">Data Visualization</span>
+          </a>
+        </div>
+      </section>
+    </main>
+  </div>
 
   <footer class="foot wrap">
     <small>&copy; <span id="year"></span> Abigale Tucker</small>
   </footer>
 
   <script src="assets/site.js" defer></script>
-  <noscript>JavaScript is required for some interactions, but projects still load.</noscript>
 </body>
 </html>
