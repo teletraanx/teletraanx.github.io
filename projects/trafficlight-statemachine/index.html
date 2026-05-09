@@ -1,0 +1,467 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Embedded Traffic Intersection Firmware with State Machine Control and UART Command Interface | Abigale Tucker</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <link rel="stylesheet" href="../../assets/site.css">
+  <link rel="stylesheet" href="../../assets/project.css">
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1/themes/prism-tomorrow.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1/prism.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-cpp.min.js"></script>
+</head>
+
+<body>
+  <div class="topbar">
+    <a class="back-link" href="https://teletraanx.github.io/">← Back to Home</a>
+  </div>
+
+  <main class="wrap">
+    <header class="project-hero">
+      <p class="eyebrow">Embedded Project</p>
+      <h1>Embedded Traffic Intersection Firmware with State Machine Control and UART Command Interface</h1>
+      <p class="summary">In this project, I built a firmware-driven 4-way traffic intersection controller using an Arduino Uno R3. This project explores embedded concepts such as state machines, non-blocking timing, UART communication, cooperative task scheduling, structured protocol design, and direct hardware interaction.</code></p>
+      <p class="summary">The controller manages North/South and East/West traffic phases, supports both automatic and manual control modes, and exposes a structured UART command interface intended for future Python/Pytest integration testing.</code></p>
+    </header>
+
+    <section class="card">
+      <h2>Key Concepts:</h2>
+
+      <ul>
+        <li>Embedded C++ firmware development</li>
+        <li>Finite state machine architecture </li>
+        <li>Non-blocking timing</li>
+        <li>UART communication</li>
+        <li>Structured command protocol</li>
+        <li>Cooperative task scheduling</li>
+        <li>Firmware observability and debug logging</li>
+        <li>Designing firmware for future automated testing</li>
+      </ul>
+
+      <h2>Hardware Layout</h2>
+      <p>
+        The controller was built with an Arduino Uno R3 and 12 LEDs, representing a 4-way traffic intersection: North, South, East, and West. Each direction consists of independent red, yellow, and green LEDs:
+      </p>
+
+      <ul>
+        <li>South:</li>
+          <ul>
+            <li>Red: <code>D13</code></li>
+            <li>Yellow: <code>D12</code></li>
+            <li>Green: <code>D11</code></li>
+          </ul>
+        <li>East:</li>
+          <ul>
+            <li>Red: <code>D10</code></li>
+            <li>Yellow: <code>D9</code></li>
+            <li>Green: <code>D8</code></li>
+          </ul>
+        <li>North:</li>
+          <ul>
+            <li>Red: <code>D7</code></li>
+            <li>Yellow: <code>D6</code></li>
+            <li>Green: <code>D5</code></li>
+          </ul>
+        <li>West:</li>
+          <ul>
+            <li>Red: <code>D4</code></li>
+            <li>Yellow: <code>D3</code></li>
+            <li>Green: <code>D2</code></li>
+          </ul>
+      </ul>
+
+      <p>I initially developed the system in Tinkercad, allowing me to plan wiring layouts, test firmware, and safely debug any issues before moving to physical hardware.</p>
+      <div class="gallery">
+        <figure>
+          <img src="/assets/thumbs/trafficlight-statemachine/testcircuit0.gif" alt="test circuit" />
+          <figcaption>Testing the circuit</figcaption>
+        </figure>
+      </div>
+
+      <h2>Finite State Machine</h2>
+      <p>Instead of procedurally cycling through LEDs inside the main loop, I redesigned the controller as a finite state machine where each traffic phase is represented as a state:</p>
+
+      <pre><code class="language-cpp">
+enum TrafficState {
+  NS_GREEN_EW_RED,
+  NS_YELLOW_EW_RED,
+  NS_RED_EW_GREEN,
+  NS_RED_EW_YELLOW
+};
+      </code></pre>
+
+      <p>Computing the next valid state in a set sequence:</p>
+
+            <pre><code class="language-cpp">
+TrafficState getNextState(TrafficState state) {
+  switch (state) {
+    case NS_GREEN_EW_RED:
+      return NS_YELLOW_EW_RED;
+
+    case NS_YELLOW_EW_RED:
+      return NS_RED_EW_GREEN;
+
+    case NS_RED_EW_GREEN:
+      return NS_RED_EW_YELLOW;
+
+    case NS_RED_EW_YELLOW:
+      return NS_GREEN_EW_RED;
+  }
+
+  return NS_GREEN_EW_RED;
+}
+
+      </code></pre>
+
+      <p>I wanted red/green states to last longer than yellow states without hard-coding delays directly into the main loop. Determining transition timing:</p>
+
+        <pre><code class="language-cpp">
+const unsigned long GREEN_DURATION = 5000;
+const unsigned long YELLOW_DURATION = 2000;
+
+unsigned long getStateDuration(TrafficState state) {
+  switch (state) {
+    case NS_GREEN_EW_RED:
+    case NS_RED_EW_GREEN:
+      return GREEN_DURATION;
+
+    case NS_YELLOW_EW_RED:
+    case NS_RED_EW_YELLOW:
+      return YELLOW_DURATION;
+  }
+
+  return GREEN_DURATION;
+}
+
+      </code></pre>
+
+      <p>Applying hardware outputs based on state:</p>
+
+        <pre><code class="language-cpp">
+void applyState(TrafficState state) {
+  allOff();
+
+  switch (state) {
+    case NS_GREEN_EW_RED:
+      digitalWrite(N_GREEN, HIGH);
+      digitalWrite(S_GREEN, HIGH);
+      digitalWrite(E_RED, HIGH);
+      digitalWrite(W_RED, HIGH);
+      break;
+
+    case NS_YELLOW_EW_RED:
+      digitalWrite(N_YELLOW, HIGH);
+      digitalWrite(S_YELLOW, HIGH);
+      digitalWrite(E_RED, HIGH);
+      digitalWrite(W_RED, HIGH);
+      break;
+
+    case NS_RED_EW_GREEN:
+      digitalWrite(N_RED, HIGH);
+      digitalWrite(S_RED, HIGH);
+      digitalWrite(E_GREEN, HIGH);
+      digitalWrite(W_GREEN, HIGH);
+      break;
+
+    case NS_RED_EW_YELLOW:
+      digitalWrite(N_RED, HIGH);
+      digitalWrite(S_RED, HIGH);
+      digitalWrite(E_YELLOW, HIGH);
+      digitalWrite(W_YELLOW, HIGH);
+      break;
+  }
+}
+
+      </code></pre>
+
+      <p>My controller initially relied on <code>delay()</code> for LED timing. Once UART communication and manual control modes are introduced, these <code>delay()</code> calls will prevent the controller from responding to commands until the delay is completed. So, I replaced blocking delays with non-blocking timing using <code>millis()</code>. </p>
+      <p>Traffic state timing is evaluated continuously, rather than using the blocking <code>delay()</code>:</p>
+        <pre><code class="language-cpp">
+void updateTrafficState() {
+  unsigned long currentTime = millis();
+  unsigned long stateDuration = getStateDuration(currentState);
+
+  if (currentTime - lastStateChangeTime >= stateDuration) {
+    currentState = getNextState(currentState);
+    applyState(currentState);
+    lastStateChangeTime = currentTime;
+  }
+}
+
+      </code></pre>
+
+      <p>Separating transition logic, timing behavior, and output control makes the firmware significantly more organized and easier to reason about and expand on.</p>
+
+      <div class="gallery">
+        <figure>
+          <img src="/assets/thumbs/trafficlight-statemachine/states0.gif" alt="states" />
+          <figcaption>Traffic States</figcaption>
+        </figure>
+      </div>
+
+      <h2>Observability and Serial Debugging</h2>
+      <p>Now, I could add serial observability through UART logging. The controller outputs to the Serial monitor: </p>
+
+      <ul>
+        <li>active traffic state</li>
+        <li>timing information</li>
+        <li>system responses</li>
+        <li>mode changes</li>
+      </ul>
+
+      <pre><code class="language-cpp">
+Serial.print("TIME: ");
+Serial.print(millis());
+Serial.println(" | STATE: NS_GREEN_EW_RED");
+
+      </code></pre>
+
+      <p>Rather than relying on looking at all 12 LEDs, the controller could now report its state directly.</p>
+      
+      <h2>UART Command Interface</h2>
+
+      <p>I added a UART command interface over Serial communication and implemented: </p>
+      <ul>
+        <li>automatic/manual mode selection</li>
+        <li>explicit state control </li>
+        <li>status queries </li>
+      </ul>
+      <p>Example commands: </p>
+
+      <pre><code class="language-text">
+GET STATUS
+SET MODE AUTO
+SET MODE MANUAL
+NEXT
+
+      </code></pre>
+
+      <p>Command handling is processed continuously alongside traffic timing: </p>
+      <pre><code class="language-cpp">
+void loop() {
+  handleSerialCommands();
+
+  if (currentMode == AUTO_MODE) {
+    updateTrafficState();
+  }
+}
+
+      </code></pre>
+
+      <h3>Transition Safety Logic</h3>
+      <p>During development, I realized that yellow states would have to be handled differently than green/red states. If I manually switched to a yellow state or switched to manual mode during a yellow state, it would stay yellow, which is awkward and not realistically reasonable. </p>
+      <p>To resolve this, I separated the states: green/red as stable states and yellow states as timed transitions.</p>
+      <pre><code class="language-cpp">
+bool isYellowState(TrafficState state) {
+  return (state == NS_YELLOW_EW_RED ||
+          state == NS_RED_EW_YELLOW);
+}
+
+bool isStableState(TrafficState state) {
+  return (state == NS_GREEN_EW_RED ||
+          state == NS_RED_EW_GREEN);
+}
+
+      </code></pre>
+
+      <p>Now, yellow states finish before advancing to the next state and pausing. </p>
+      <pre><code class="language-cpp">
+if (manualModePending && isStableState(currentState)) {
+  currentMode = MANUAL_MODE;
+  manualModePending = false;
+  Serial.println("OK: mode set to MANUAL after yellow transition completed");
+}
+
+      </code></pre>
+
+      <h3>Direct State Commands</h3>
+
+      <p>After adding manual mode, I added direct state commands so the controller could be placed into states as such: </p>
+      <pre><code class="language-text">
+SET STATE NS_GREEN_EW_RED
+SET STATE NS_RED_EW_GREEN
+
+      </code></pre>
+
+      <p>This makes the controller deterministic and easier to test because users or systems can place the firmware into known conditions before validating behavior.</p>
+      <p>The command is only accepted in manual mode so that commands do not override the automatic traffic cycle.</p>
+
+      <pre><code class="language-cpp">
+void handleSerialCommands() {
+…
+else if (command.startsWith("SET STATE ")) {
+      if (currentMode != MANUAL_MODE) {
+        Serial.println("ERROR: SET STATE only allowed in MANUAL mode");
+      } else {
+        String stateText = command.substring(10);
+        stateText.trim();
+
+        TrafficState requestedState;
+        if (parseState(stateText, requestedState)) {
+          currentState = requestedState;
+          applyState(currentState);
+
+          if (isYellowState(currentState)) {
+            lastStateChangeTime = millis();
+            currentMode = AUTO_MODE;
+            manualModePending = true;
+            Serial.println("OK: yellow state entered; controller will return to MANUAL after yellow completes");
+          } else {
+            Serial.print("OK: state set to ");
+            Serial.println(stateToString(currentState));
+          }
+        } else {
+          Serial.println("ERROR: invalid state");
+        }
+      }
+    }
+    else {
+      Serial.println("ERROR: unknown command");
+    }
+  }
+}
+
+      </code></pre>
+
+      <p>As more UART commands were added, multiple code paths could trigger state changes, so to avoid duplicating logic between automatic transitions and UART-driven transitions, I centralized transition side effects into a dedicated helper.</p>
+      <pre><code class="language-cpp">
+void requestStateChange(TrafficState newState) {
+  currentState = newState;
+  applyState(currentState);
+
+  if (isYellowState(currentState)) {
+    lastStateChangeTime = millis();
+    currentMode = AUTO_MODE;
+    manualModePending = true;
+    Serial.println("OK: yellow state entered; controller will return to MANUAL after yellow completes");
+  } else {
+    Serial.print("OK: state set to ");
+    Serial.println(stateToString(currentState));
+  }
+}
+
+      </code></pre>
+
+      <div class="gallery">
+        <figure>
+          <img src="/assets/thumbs/trafficlight-statemachine/directstatecommands0.gif" alt="direct state commands" />
+          <figcaption>Direct State Commands</figcaption>
+        </figure>
+      </div>
+
+      <h2>Structured Firmware Protocol</h2>
+      <p>I later redesigned the UART interface to use a structured command protocol rather than plain-text commands. </p>
+      <p>Commands now follow a consistent format: <code>CMD:<COMMAND>;ARG:<VALUE></code>, such as:</p>
+
+      <pre><code class="language-text">
+CMD:GET_STATUS
+CMD:SET_MODE;ARG:MANUAL
+CMD:SET_STATE;ARG:NS_RED_EW_GREEN
+CMD:NEXT
+
+      </code></pre>
+
+      <pre><code class="language-cpp">
+void processStructuredCommand(String command) {
+…
+ else if (command.startsWith("CMD:SET_STATE;ARG:")) {
+    if (currentMode != MANUAL_MODE) {
+      Serial.println("ERROR: SET_STATE only allowed in MANUAL mode");
+      return;
+    }
+
+    String stateText = command.substring(18);
+    stateText.trim();
+
+    TrafficState requestedState;
+    if (parseState(stateText, requestedState)) {
+      requestStateChange(requestedState);
+    } else {
+      Serial.println("ERROR: invalid state");
+    }
+  }
+  else {
+    Serial.println("ERROR: unknown structured command");
+  }
+}
+
+      </code></pre>
+
+      <h2>Cooperative Task Scheduling</h2>
+      <p>Although the controller does not run a true RTOS, I wanted to structure the firmware around RTOS-style cooperative task scheduling concepts.</p>
+      <p>The main loop separates responsibilities into two independent tasks:</p>
+
+      <pre><code class="language-cpp">
+void loop() {
+  taskHandleCommands();
+  taskUpdateController();
+}
+
+      </code></pre>
+
+      <p>Each task executes quickly and returns immediately, allowing the firmware to continuously service multiple responsibilities. This allows command handling, timing evaluation, and state management to execute without blocking each other.</p>
+
+      <h2>Direct Register Manipulation</h2>
+      <p>The South light outputs were wired on pins <code>D11-13</code>, allowing them to be controlled directly through <code>PORTB</code>.</p>
+
+      <pre><code class="language-cpp">
+void setSouthLightsDirect(bool redOn, bool yellowOn, bool greenOn) {
+  if (redOn) {
+    PORTB |= (1 << PB5);
+  } else {
+    PORTB &= ~(1 << PB5);
+  }
+
+  if (yellowOn) {
+    PORTB |= (1 << PB4);
+  } else {
+    PORTB &= ~(1 << PB4);
+  }
+
+  if (greenOn) {
+    PORTB |= (1 << PB3);
+  } else {
+    PORTB &= ~(1 << PB3);
+  }
+}
+
+      </code></pre>
+
+      <p>While only this portion of the controller currently uses direct register access, this was one of my favorite parts of the project because I’m particularly interested in assembly, low-level, and hardware-oriented programming.</p>
+
+      <h2>Future Physical Hardware and Python Automated Testing</h2>
+      <p>I intentionally designed the UART command interface to support future Python integration testing using pyserial and pytest.</p>
+      <p>Future tests include:</p>
+      <ul>
+        <li>validating state transitions</li>
+        <li>verifying manual/automatic mode behavior</li>
+        <li>testing yellow transition timing rules</li>
+        <li>confirming protocol responses</li>
+        <li>rejecting malformed commands</li>
+      </ul>
+
+      <p>This testing will allow the firmware to be validated automatically rather than relying on manual commands.</p>
+
+      <div class="link-row">
+        <a class="source-link" href="https://github.com/teletraanx/trafficlight-statemachine/blob/main/trafficlight_firmware.ino" target="_blank" rel="noopener">Intersection Firmware: trafficlight_firmware.ino</a>
+      </div>
+
+      <div class="gallery">
+        <figure>
+          <img src="/assets/thumbs/trafficlight-statemachine/trafficlight.jpg" alt="3d printed traffic light" />
+          <figcaption>3D Printed Traffic Light. Model by kocyunus.</figcaption>
+        </figure>
+      </div>
+
+      <div class="row">
+        <a class="btn" href="https://github.com/teletraanx/trafficlight-statemachine/tree/main" target="_blank" rel="noopener">
+          View Code on GitHub
+        </a>
+      </div>
+
+      <footer class="project-footer">C++</footer>
+    </section>
+  </main>
+</body>
+</html>
