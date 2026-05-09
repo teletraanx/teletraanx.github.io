@@ -185,9 +185,18 @@
     pre code {
       display: block;
       white-space: pre;
-      color: #ded8cb;
       font-size: 0.9rem;
       line-height: 1.55;
+    }
+
+    pre code[class*="language-"] {
+      color: inherit;
+    }
+
+    pre[class*="language-"] {
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: 14px;
     }
 
     .card {
