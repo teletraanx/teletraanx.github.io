@@ -8,8 +8,10 @@
   <link rel="stylesheet" href="../../assets/project.css">
 
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1/themes/prism-tomorrow.min.css">
+
   <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1/prism.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-clike.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-c.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-cpp.min.js"></script>
 </head>
 
@@ -353,7 +355,7 @@ void requestStateChange(TrafficState newState) {
 
       <h2>Structured Firmware Protocol</h2>
       <p>I later redesigned the UART interface to use a structured command protocol rather than plain-text commands. </p>
-      <p>Commands now follow a consistent format: <code>CMD:<COMMAND>;ARG:<VALUE></code>, such as:</p>
+      <p>Commands now follow a consistent format: <code>CMD:&lt;COMMAND&gt;;ARG:&lt;VALUE&gt;</code>, such as:</p>
 
       <pre><code class="language-text">
 CMD:GET_STATUS

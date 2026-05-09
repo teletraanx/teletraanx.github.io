@@ -189,10 +189,6 @@
       line-height: 1.55;
     }
 
-    pre code[class*="language-"] {
-      color: inherit;
-    }
-
     pre[class*="language-"] {
       background: var(--code-bg);
       border: 1px solid var(--border);
